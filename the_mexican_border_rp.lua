@@ -54,10 +54,10 @@ main.BackgroundTransparency = 0.4
 makeDraggable(main)
 Instance.new("UICorner", main)
 
--- TP MENU (Slightly taller to fit the 16th location cleanly)
+-- TP MENU (Expanded to fit the 17th location comfortably)
 local tpFrame = Instance.new("Frame", sg)
-tpFrame.Size = UDim2.new(0, 180, 0, 630)
-tpFrame.Position = UDim2.new(0, 220, 1, -640)
+tpFrame.Size = UDim2.new(0, 180, 0, 665)
+tpFrame.Position = UDim2.new(0, 220, 1, -675)
 tpFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 tpFrame.BackgroundTransparency = 0.4
 tpFrame.Visible = false
@@ -478,7 +478,7 @@ end
 createTp("Bank", Vector3.new(-22, 18, 588), 75)
 createTp("Black Market", Vector3.new(-94, 14, 165), 108)
 createTp("Border Roof", Vector3.new(-175, 56, 269), 141)
-createTp("Cart Ride", Vector3.new(-307, -20, 110), 174) -- Added Location Here
+createTp("Cart Ride", Vector3.new(-307, -20, 110), 174)
 createTp("Cart Spawn", Vector3.new(-697, 37, 348), 207)
 createTp("Cartel", Vector3.new(-71, -15, -106), 240)
 createTp("Clothing Store", Vector3.new(-211, 14, 573), 273)
@@ -487,10 +487,11 @@ createTp("Hat Store", Vector3.new(60, 17, -70), 339)
 createTp("Houses", Vector3.new(30, 13, 433), 372)
 createTp("Illegal Guns", Vector3.new(-219, 14, 78), 405)
 createTp("Illegal Shop", Vector3.new(-67, 14, 60), 438)
-createTp("Permits Shop", Vector3.new(-143, 14, -10), 471)
-createTp("Rope", Vector3.new(-224, 38, 95), 504)
-createTp("Tacos", Vector3.new(-142, 14, 55), 537)
-createTp("Water Fountain", Vector3.new(-179, 14, 346), 570) 
+createTp("Mines", Vector3.new(-285, 14, 433), 471) -- Added Location Here
+createTp("Permits Shop", Vector3.new(-143, 14, -10), 504)
+createTp("Rope", Vector3.new(-224, 38, 95), 537)
+createTp("Tacos", Vector3.new(-142, 14, 55), 570)
+createTp("Water Fountain", Vector3.new(-179, 14, 346), 603) 
 
 -- BACKGROUND LOOPS
 runService.Stepped:Connect(function()
