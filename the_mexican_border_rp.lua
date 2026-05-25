@@ -22,6 +22,7 @@ local boxActive = false
 local nameActive = false
 local tracerActive = false
 local skeletonActive = false
+local maxZoomActive = false
 
 local sg = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 sg.Name = "CrateMaster_V17_SplitESP"
@@ -53,8 +54,8 @@ makeDraggable(main)
 Instance.new("UICorner", main)
 
 local tpFrame = Instance.new("Frame", sg)
-tpFrame.Size = UDim2.new(0, 180, 0, 665)
-tpFrame.Position = UDim2.new(0, 220, 1, -675)
+tpFrame.Size = UDim2.new(0, 180, 0, 698)
+tpFrame.Position = UDim2.new(0, 220, 1, -708)
 tpFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 tpFrame.BackgroundTransparency = 0.4
 tpFrame.Visible = false
@@ -62,8 +63,8 @@ makeDraggable(tpFrame)
 Instance.new("UICorner", tpFrame)
 
 local espMenu = Instance.new("Frame", sg)
-espMenu.Size = UDim2.new(0, 180, 0, 200)
-espMenu.Position = UDim2.new(0, 410, 1, -210)
+espMenu.Size = UDim2.new(0, 180, 0, 240)
+espMenu.Position = UDim2.new(0, 410, 1, -250)
 espMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 espMenu.BackgroundTransparency = 0.4
 espMenu.Visible = false
@@ -331,6 +332,7 @@ end
 for _, p in pairs(players:GetPlayers()) do if p ~= player then createESP(p) end end
 players.PlayerAdded:Connect(function(p) if p ~= player then createESP(p) end end)
 
+local main = sg:FindFirstChild("Frame") or sg:GetChildren()[1]
 local farmBtn = createBtn("AUTOFARM: OFF [F1]", UDim2.new(0, 10, 0, 10), main, Color3.fromRGB(120, 40, 40))
 local illegalBtn = createBtn("ILLEGAL FARM: OFF [F2]", UDim2.new(0, 10, 0, 50), main, Color3.fromRGB(120, 40, 40))
 local noclipBtn = createBtn("NOCLIP: OFF [F3]", UDim2.new(0, 10, 0, 90), main)
@@ -342,6 +344,7 @@ local toggleBoxBtn = createBtn("BOX ESP: OFF", UDim2.new(0, 10, 0, 10), espMenu)
 local toggleNameBtn = createBtn("NAME ESP: OFF", UDim2.new(0, 10, 0, 50), espMenu)
 local toggleTracerBtn = createBtn("TRACERS: OFF", UDim2.new(0, 10, 0, 90), espMenu)
 local toggleSkeletonBtn = createBtn("SKELETON ESP: OFF", UDim2.new(0, 10, 0, 130), espMenu)
+local maxZoomBtn = createBtn("MAX ZOOM: OFF", UDim2.new(0, 10, 0, 170), espMenu, Color3.fromRGB(80, 40, 120))
 
 toggleBoxBtn.MouseButton1Click:Connect(function()
     boxActive = not boxActive
@@ -365,6 +368,13 @@ toggleSkeletonBtn.MouseButton1Click:Connect(function()
     skeletonActive = not skeletonActive
     toggleSkeletonBtn.Text = skeletonActive and "SKELETON ESP: ON" or "SKELETON ESP: OFF"
     toggleSkeletonBtn.TextColor3 = skeletonActive and Color3.new(0,1,0) or Color3.new(1,1,1)
+end)
+
+maxZoomBtn.MouseButton1Click:Connect(function()
+    maxZoomActive = not maxZoomActive
+    maxZoomBtn.Text = maxZoomActive and "MAX ZOOM: ON" or "MAX ZOOM: OFF"
+    maxZoomBtn.TextColor3 = maxZoomActive and Color3.new(0,1,0) or Color3.new(1,1,1)
+    player.CameraMaxZoomDistance = maxZoomActive and 1000 or 400
 end)
 
 local function updateButtonVisuals()
@@ -407,6 +417,7 @@ removeBtn.MouseButton1Click:Connect(function()
     nameActive = false
     tracerActive = false
     skeletonActive = false
+    player.CameraMaxZoomDistance = 400
     sg:Destroy()
 end)
 
@@ -459,20 +470,21 @@ end
 createTp("Bank", Vector3.new(-22, 18, 588), 75)
 createTp("Black Market", Vector3.new(-94, 14, 165), 108)
 createTp("Border Roof", Vector3.new(-175, 56, 269), 141)
-createTp("Cart Ride", Vector3.new(-307, -20, 110), 174)
-createTp("Cart Spawn", Vector3.new(-697, 37, 348), 207)
-createTp("Cartel", Vector3.new(-71, -15, -106), 240)
-createTp("Clothing Store", Vector3.new(-211, 14, 573), 273)
-createTp("Gun Store", Vector3.new(-20, 15, 526), 306)
-createTp("Hat Store", Vector3.new(60, 17, -70), 339)
-createTp("Houses", Vector3.new(30, 13, 433), 372)
-createTp("Illegal Guns", Vector3.new(-219, 14, 78), 405)
-createTp("Illegal Shop", Vector3.new(-67, 14, 60), 438)
-createTp("Mines", Vector3.new(-285, 14, 433), 471)
-createTp("Permits Shop", Vector3.new(-143, 14, -10), 504)
-createTp("Rope", Vector3.new(-224, 38, 95), 537)
-createTp("Tacos", Vector3.new(-142, 14, 55), 570)
-createTp("Water Fountain", Vector3.new(-179, 14, 346), 603) 
+createTp("Burger Shop", Vector3.new(-98, 14, 568), 174)
+createTp("Cart Ride", Vector3.new(-307, -20, 110), 207)
+createTp("Cart Spawn", Vector3.new(-697, 37, 348), 240)
+createTp("Cartel", Vector3.new(-71, -15, -106), 273)
+createTp("Clothing Store", Vector3.new(-211, 14, 573), 306)
+createTp("Gun Store", Vector3.new(-20, 15, 526), 339)
+createTp("Hat Store", Vector3.new(60, 17, -70), 372)
+createTp("Houses", Vector3.new(30, 13, 433), 405)
+createTp("Illegal Guns", Vector3.new(-219, 14, 78), 438)
+createTp("Illegal Shop", Vector3.new(-67, 14, 60), 471)
+createTp("Mines", Vector3.new(-285, 14, 433), 504)
+createTp("Permits Shop", Vector3.new(-143, 14, -10), 537)
+createTp("Rope", Vector3.new(-224, 38, 95), 570)
+createTp("Tacos", Vector3.new(-142, 14, 55), 603)
+createTp("Water Fountain", Vector3.new(-179, 14, 346), 636) 
 
 runService.Stepped:Connect(function()
     if scriptRunning and noclip and player.Character then
