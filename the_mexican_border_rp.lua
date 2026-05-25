@@ -54,17 +54,17 @@ main.BackgroundTransparency = 0.4
 makeDraggable(main)
 Instance.new("UICorner", main)
 
--- TP MENU 
+-- TP MENU (Slightly taller to fit the new location button comfortably)
 local tpFrame = Instance.new("Frame", sg)
-tpFrame.Size = UDim2.new(0, 180, 0, 560)
-tpFrame.Position = UDim2.new(0, 220, 1, -570)
+tpFrame.Size = UDim2.new(0, 180, 0, 595)
+tpFrame.Position = UDim2.new(0, 220, 1, -605)
 tpFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 tpFrame.BackgroundTransparency = 0.4
 tpFrame.Visible = false
 makeDraggable(tpFrame)
 Instance.new("UICorner", tpFrame)
 
--- ESP MENU (Expanded size to perfectly fit 4 buttons now)
+-- ESP MENU
 local espMenu = Instance.new("Frame", sg)
 espMenu.Size = UDim2.new(0, 180, 0, 200)
 espMenu.Position = UDim2.new(0, 410, 1, -210)
@@ -287,7 +287,7 @@ local function createESP(plr)
                 tracerLine.Visible = false
             end
 
-            -- 4. SKELETON ESP LOGIC (Supports R6 & R15 dynamically)
+            -- 4. SKELETON ESP LOGIC
             if skeletonActive then
                 local head = char:FindFirstChild("Head")
                 local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
@@ -305,22 +305,16 @@ local function createESP(plr)
                     local rightLegP, rightLegO = camera:WorldToViewportPoint(rightLeg.Position)
 
                     if torsoO then
-                        -- Spine (Head to Torso)
                         skeletonLines[1].From = Vector2.new(headP.X, headP.Y)
                         skeletonLines[1].To = Vector2.new(torsoP.X, torsoP.Y)
-                        -- Left Shoulder (Torso to Left Arm)
                         skeletonLines[2].From = Vector2.new(torsoP.X, torsoP.Y)
                         skeletonLines[2].To = Vector2.new(leftArmP.X, leftArmP.Y)
-                        -- Right Shoulder (Torso to Right Arm)
                         skeletonLines[3].From = Vector2.new(torsoP.X, torsoP.Y)
                         skeletonLines[3].To = Vector2.new(rightArmP.X, rightArmP.Y)
-                        -- Left Hip (Torso to Left Leg)
                         skeletonLines[4].From = Vector2.new(torsoP.X, torsoP.Y)
                         skeletonLines[4].To = Vector2.new(leftLegP.X, leftLegP.Y)
-                        -- Right Hip (Torso to Right Leg)
                         skeletonLines[5].From = Vector2.new(torsoP.X, torsoP.Y)
                         skeletonLines[5].To = Vector2.new(rightLegP.X, rightLegP.Y)
-                        -- Shoulder Bridge (Left Arm to Right Arm)
                         skeletonLines[6].From = Vector2.new(leftArmP.X, leftArmP.Y)
                         skeletonLines[6].To = Vector2.new(rightArmP.X, rightArmP.Y)
 
@@ -465,17 +459,18 @@ end
 createTp("Bank", Vector3.new(-22, 18, 588), 75)
 createTp("Black Market", Vector3.new(-94, 14, 165), 108)
 createTp("Border Roof", Vector3.new(-175, 56, 269), 141)
-createTp("Cartel", Vector3.new(-71, -15, -106), 174)
-createTp("Clothing Store", Vector3.new(-211, 14, 573), 207)
-createTp("Gun Store", Vector3.new(-20, 15, 526), 240)
-createTp("Hat Store", Vector3.new(60, 17, -70), 273)
-createTp("Houses", Vector3.new(30, 13, 433), 306)
-createTp("Illegal Guns", Vector3.new(-219, 14, 78), 339)
-createTp("Illegal Shop", Vector3.new(-67, 14, 60), 372)
-createTp("Permits Shop", Vector3.new(-143, 14, -10), 405)
-createTp("Rope", Vector3.new(-224, 38, 95), 438)
-createTp("Tacos", Vector3.new(-142, 14, 55), 471)
-createTp("Water Fountain", Vector3.new(-179, 14, 346), 504) 
+createTp("Cart Spawn", Vector3.new(-697, 37, 348), 174) -- Added Location Here
+createTp("Cartel", Vector3.new(-71, -15, -106), 207)
+createTp("Clothing Store", Vector3.new(-211, 14, 573), 240)
+createTp("Gun Store", Vector3.new(-20, 15, 526), 273)
+createTp("Hat Store", Vector3.new(60, 17, -70), 306)
+createTp("Houses", Vector3.new(30, 13, 433), 339)
+createTp("Illegal Guns", Vector3.new(-219, 14, 78), 372)
+createTp("Illegal Shop", Vector3.new(-67, 14, 60), 405)
+createTp("Permits Shop", Vector3.new(-143, 14, -10), 438)
+createTp("Rope", Vector3.new(-224, 38, 95), 471)
+createTp("Tacos", Vector3.new(-142, 14, 55), 504)
+createTp("Water Fountain", Vector3.new(-179, 14, 346), 537) 
 
 -- BACKGROUND LOOPS
 runService.Stepped:Connect(function()
