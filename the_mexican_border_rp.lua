@@ -54,8 +54,8 @@ makeDraggable(main)
 Instance.new("UICorner", main)
 
 local tpFrame = Instance.new("Frame", sg)
-tpFrame.Size = UDim2.new(0, 180, 0, 698)
-tpFrame.Position = UDim2.new(0, 220, 1, -708)
+tpFrame.Size = UDim2.new(0, 190, 0, 300)
+tpFrame.Position = UDim2.new(0, 220, 1, -310)
 tpFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 tpFrame.BackgroundTransparency = 0.4
 tpFrame.Visible = false
@@ -64,7 +64,7 @@ Instance.new("UICorner", tpFrame)
 
 local espMenu = Instance.new("Frame", sg)
 espMenu.Size = UDim2.new(0, 180, 0, 240)
-espMenu.Position = UDim2.new(0, 410, 1, -250)
+espMenu.Position = UDim2.new(0, 420, 1, -250)
 espMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 espMenu.BackgroundTransparency = 0.4
 espMenu.Visible = false
@@ -98,6 +98,18 @@ suggestions.BackgroundTransparency = 0.1
 suggestions.ZIndex = 10
 suggestions.Visible = false
 local listLayout = Instance.new("UIListLayout", suggestions)
+
+local tpScroll = Instance.new("ScrollingFrame", tpFrame)
+tpScroll.Size = UDim2.new(1, -10, 1, -80)
+tpScroll.Position = UDim2.new(0, 5, 0, 75)
+tpScroll.BackgroundTransparency = 1
+tpScroll.BorderSizePixel = 0
+tpScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+tpScroll.ScrollBarThickness = 6
+
+local tpListLayout = Instance.new("UIListLayout", tpScroll)
+tpListLayout.Padding = UDim.new(0, 5)
+tpListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 playerBox:GetPropertyChangedSignal("Text"):Connect(function()
     for _, v in pairs(suggestions:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
@@ -332,13 +344,13 @@ end
 for _, p in pairs(players:GetPlayers()) do if p ~= player then createESP(p) end end
 players.PlayerAdded:Connect(function(p) if p ~= player then createESP(p) end end)
 
-local main = sg:FindFirstChild("Frame") or sg:GetChildren()[1]
-local farmBtn = createBtn("AUTOFARM: OFF [F1]", UDim2.new(0, 10, 0, 10), main, Color3.fromRGB(120, 40, 40))
-local illegalBtn = createBtn("ILLEGAL FARM: OFF [F2]", UDim2.new(0, 10, 0, 50), main, Color3.fromRGB(120, 40, 40))
-local noclipBtn = createBtn("NOCLIP: OFF [F3]", UDim2.new(0, 10, 0, 90), main)
-local toggleTpBtn = createBtn("TP MENU [F4]", UDim2.new(0, 10, 0, 130), main, Color3.fromRGB(0, 80, 120))
-local toggleEspMenuBtn = createBtn("ESP MENU [F5]", UDim2.new(0, 10, 0, 170), main, Color3.fromRGB(0, 120, 80))
-local removeBtn = createBtn("REMOVE SCRIPT", UDim2.new(0, 10, 0, 215), main, Color3.fromRGB(150, 0, 0))
+local mainFrame = sg:FindFirstChild("Frame") or sg:GetChildren()[1]
+local farmBtn = createBtn("AUTOFARM: OFF [F1]", UDim2.new(0, 10, 0, 10), mainFrame, Color3.fromRGB(120, 40, 40))
+local illegalBtn = createBtn("ILLEGAL FARM: OFF [F2]", UDim2.new(0, 10, 0, 50), mainFrame, Color3.fromRGB(120, 40, 40))
+local noclipBtn = createBtn("NOCLIP: OFF [F3]", UDim2.new(0, 10, 0, 90), mainFrame)
+local toggleTpBtn = createBtn("TP MENU [F4]", UDim2.new(0, 10, 0, 130), mainFrame, Color3.fromRGB(0, 80, 120))
+local toggleEspMenuBtn = createBtn("ESP MENU [F5]", UDim2.new(0, 10, 0, 170), mainFrame, Color3.fromRGB(0, 120, 80))
+local removeBtn = createBtn("REMOVE SCRIPT", UDim2.new(0, 10, 0, 215), mainFrame, Color3.fromRGB(150, 0, 0))
 
 local toggleBoxBtn = createBtn("BOX ESP: OFF", UDim2.new(0, 10, 0, 10), espMenu)
 local toggleNameBtn = createBtn("NAME ESP: OFF", UDim2.new(0, 10, 0, 50), espMenu)
@@ -456,8 +468,9 @@ userInputService.InputBegan:Connect(function(i, g)
     end
 end)
 
-local function createTp(name, pos, y)
-    local b = createBtn(name, UDim2.new(0, 10, 0, y), tpFrame)
+local function createTp(name, pos)
+    local b = createBtn(name, UDim2.new(0, 0, 0, 0), tpScroll)
+    b.Size = UDim2.new(1, -10, 0, 28)
     b.MouseButton1Click:Connect(function()
         farmActive = false; illegalActive = false
         updateButtonVisuals()
@@ -467,24 +480,29 @@ local function createTp(name, pos, y)
     end)
 end
 
-createTp("Bank", Vector3.new(-22, 18, 588), 75)
-createTp("Black Market", Vector3.new(-94, 14, 165), 108)
-createTp("Border Roof", Vector3.new(-175, 56, 269), 141)
-createTp("Burger Shop", Vector3.new(-98, 14, 568), 174)
-createTp("Cart Ride", Vector3.new(-307, -20, 110), 207)
-createTp("Cart Spawn", Vector3.new(-697, 37, 348), 240)
-createTp("Cartel", Vector3.new(-71, -15, -106), 273)
-createTp("Clothing Store", Vector3.new(-211, 14, 573), 306)
-createTp("Gun Store", Vector3.new(-20, 15, 526), 339)
-createTp("Hat Store", Vector3.new(60, 17, -70), 372)
-createTp("Houses", Vector3.new(30, 13, 433), 405)
-createTp("Illegal Guns", Vector3.new(-219, 14, 78), 438)
-createTp("Illegal Shop", Vector3.new(-67, 14, 60), 471)
-createTp("Mines", Vector3.new(-285, 14, 433), 504)
-createTp("Permits Shop", Vector3.new(-143, 14, -10), 537)
-createTp("Rope", Vector3.new(-224, 38, 95), 570)
-createTp("Tacos", Vector3.new(-142, 14, 55), 603)
-createTp("Water Fountain", Vector3.new(-179, 14, 346), 636) 
+createTp("Bank", Vector3.new(-22, 18, 588))
+createTp("Black Market", Vector3.new(-94, 14, 165))
+createTp("Border Roof", Vector3.new(-175, 56, 269))
+createTp("Burger Shop", Vector3.new(-98, 14, 568))
+createTp("Cart Ride", Vector3.new(-307, -20, 110))
+createTp("Cart Spawn", Vector3.new(-697, 37, 348))
+createTp("Cartel", Vector3.new(-71, -15, -106))
+createTp("Clothing Store", Vector3.new(-211, 14, 573))
+createTp("Gun Store", Vector3.new(-20, 15, 526))
+createTp("Hat Store", Vector3.new(60, 17, -70))
+createTp("Houses", Vector3.new(30, 13, 433))
+createTp("Illegal Guns", Vector3.new(-219, 14, 78))
+createTp("Illegal Shop", Vector3.new(-67, 14, 60))
+createTp("Mines", Vector3.new(-285, 14, 433))
+createTp("Permits Shop", Vector3.new(-143, 14, -10))
+createTp("Rope", Vector3.new(-224, 38, 95))
+createTp("Tacos", Vector3.new(-142, 14, 55))
+createTp("Water Fountain", Vector3.new(-179, 14, 346)) 
+
+tpScroll.CanvasSize = UDim2.new(0, 0, 0, tpListLayout.AbsoluteContentSize.Y + 10)
+tpListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    tpScroll.CanvasSize = UDim2.new(0, 0, 0, tpListLayout.AbsoluteContentSize.Y + 10)
+end)
 
 runService.Stepped:Connect(function()
     if scriptRunning and noclip and player.Character then
