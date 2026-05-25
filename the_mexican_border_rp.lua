@@ -54,10 +54,10 @@ main.BackgroundTransparency = 0.4
 makeDraggable(main)
 Instance.new("UICorner", main)
 
--- TP MENU (Slightly taller to fit the new location button comfortably)
+-- TP MENU (Slightly taller to fit the 16th location cleanly)
 local tpFrame = Instance.new("Frame", sg)
-tpFrame.Size = UDim2.new(0, 180, 0, 595)
-tpFrame.Position = UDim2.new(0, 220, 1, -605)
+tpFrame.Size = UDim2.new(0, 180, 0, 630)
+tpFrame.Position = UDim2.new(0, 220, 1, -640)
 tpFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 tpFrame.BackgroundTransparency = 0.4
 tpFrame.Visible = false
@@ -427,7 +427,7 @@ removeBtn.MouseButton1Click:Connect(function()
     sg:Destroy()
 end)
 
--- HOTKEYS
+-- HOTKEYS & CTRL-CLICK TELEPORT
 userInputService.InputBegan:Connect(function(i, g)
     if g then return end
     if i.KeyCode == Enum.KeyCode.F1 then 
@@ -441,6 +441,25 @@ userInputService.InputBegan:Connect(function(i, g)
         tpFrame.Visible = not tpFrame.Visible
     elseif i.KeyCode == Enum.KeyCode.F5 then 
         espMenu.Visible = not espMenu.Visible 
+    elseif i.UserInputType == Enum.UserInputType.MouseButton1 then
+        if userInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local mousePos = userInputService:GetMouseLocation()
+                local unitRay = camera:ViewportPointToRay(mousePos.X, mousePos.Y)
+                
+                local raycastParams = RaycastParams.new()
+                raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+                raycastParams.FilterDescendantsInstances = {player.Character}
+                
+                local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 5000, raycastParams)
+                if raycastResult then
+                    farmActive = false
+                    illegalActive = false
+                    updateButtonVisuals()
+                    player.Character.HumanoidRootPart.CFrame = CFrame.new(raycastResult.Position + Vector3.new(0, 3, 0))
+                end
+            end
+        end
     end
 end)
 
@@ -459,18 +478,19 @@ end
 createTp("Bank", Vector3.new(-22, 18, 588), 75)
 createTp("Black Market", Vector3.new(-94, 14, 165), 108)
 createTp("Border Roof", Vector3.new(-175, 56, 269), 141)
-createTp("Cart Spawn", Vector3.new(-697, 37, 348), 174) -- Added Location Here
-createTp("Cartel", Vector3.new(-71, -15, -106), 207)
-createTp("Clothing Store", Vector3.new(-211, 14, 573), 240)
-createTp("Gun Store", Vector3.new(-20, 15, 526), 273)
-createTp("Hat Store", Vector3.new(60, 17, -70), 306)
-createTp("Houses", Vector3.new(30, 13, 433), 339)
-createTp("Illegal Guns", Vector3.new(-219, 14, 78), 372)
-createTp("Illegal Shop", Vector3.new(-67, 14, 60), 405)
-createTp("Permits Shop", Vector3.new(-143, 14, -10), 438)
-createTp("Rope", Vector3.new(-224, 38, 95), 471)
-createTp("Tacos", Vector3.new(-142, 14, 55), 504)
-createTp("Water Fountain", Vector3.new(-179, 14, 346), 537) 
+createTp("Cart Ride", Vector3.new(-307, -20, 110), 174) -- Added Location Here
+createTp("Cart Spawn", Vector3.new(-697, 37, 348), 207)
+createTp("Cartel", Vector3.new(-71, -15, -106), 240)
+createTp("Clothing Store", Vector3.new(-211, 14, 573), 273)
+createTp("Gun Store", Vector3.new(-20, 15, 526), 306)
+createTp("Hat Store", Vector3.new(60, 17, -70), 339)
+createTp("Houses", Vector3.new(30, 13, 433), 372)
+createTp("Illegal Guns", Vector3.new(-219, 14, 78), 405)
+createTp("Illegal Shop", Vector3.new(-67, 14, 60), 438)
+createTp("Permits Shop", Vector3.new(-143, 14, -10), 471)
+createTp("Rope", Vector3.new(-224, 38, 95), 504)
+createTp("Tacos", Vector3.new(-142, 14, 55), 537)
+createTp("Water Fountain", Vector3.new(-179, 14, 346), 570) 
 
 -- BACKGROUND LOOPS
 runService.Stepped:Connect(function()
