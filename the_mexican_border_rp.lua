@@ -18,7 +18,6 @@ local illegalActive = false
 local noclip = false
 local scriptRunning = true
 
--- INDIVIDUAL ESP CONFIG TOGGLES
 local boxActive = false
 local nameActive = false
 local tracerActive = false
@@ -45,7 +44,6 @@ local function makeDraggable(frame)
     end)
 end
 
--- MAIN PANEL
 local main = Instance.new("Frame", sg)
 main.Size = UDim2.new(0, 200, 0, 260)
 main.Position = UDim2.new(0, 10, 1, -270)
@@ -54,7 +52,6 @@ main.BackgroundTransparency = 0.4
 makeDraggable(main)
 Instance.new("UICorner", main)
 
--- TP MENU (Expanded to fit the 17th location comfortably)
 local tpFrame = Instance.new("Frame", sg)
 tpFrame.Size = UDim2.new(0, 180, 0, 665)
 tpFrame.Position = UDim2.new(0, 220, 1, -675)
@@ -64,7 +61,6 @@ tpFrame.Visible = false
 makeDraggable(tpFrame)
 Instance.new("UICorner", tpFrame)
 
--- ESP MENU
 local espMenu = Instance.new("Frame", sg)
 espMenu.Size = UDim2.new(0, 180, 0, 200)
 espMenu.Position = UDim2.new(0, 410, 1, -210)
@@ -74,7 +70,6 @@ espMenu.Visible = false
 makeDraggable(espMenu)
 Instance.new("UICorner", espMenu)
 
--- PLAYER TP BOX INSIDE TP MENU
 local playerBox = Instance.new("TextBox", tpFrame)
 playerBox.Size = UDim2.new(1, -20, 0, 25)
 playerBox.Position = UDim2.new(0, 10, 0, 10)
@@ -148,7 +143,6 @@ local function createBtn(text, pos, parent, color)
     return btn
 end
 
--- FACTION GROUPING LOGIC
 local function getFaction(plr)
     if not plr.Team then return "Neutral" end
     local name = plr.Team.Name:lower()
@@ -174,7 +168,6 @@ local function getESPColor(targetPlr)
     end
 end
 
--- ESP LOGIC SPLIT INTO INDEPENDENT FEATURES
 local function createESP(plr)
     local box = Instance.new("BoxHandleAdornment")
     box.Name = "ESPBox"
@@ -211,12 +204,10 @@ local function createESP(plr)
     nameLabel.Font = Enum.Font.SourceSansBold
     nameLabel.TextSize = 12
 
-    -- 2D Drawing Configuration for Tracers
     local tracerLine = Drawing.new("Line")
     tracerLine.Thickness = 1.5
     tracerLine.Transparency = 0.8
 
-    -- 2D Drawing Objects for Skeleton Lines
     local skeletonLines = {}
     for i = 1, 6 do
         local line = Drawing.new("Line")
@@ -247,7 +238,6 @@ local function createESP(plr)
             local root = char.HumanoidRootPart
             local dynamicColor = getESPColor(plr)
             
-            -- 1. BOX ESP LOGIC
             if boxActive then
                 box.Adornee = root
                 box.Color3 = dynamicColor
@@ -256,7 +246,6 @@ local function createESP(plr)
                 box.Visible = false
             end
 
-            -- 2. NAMES & HEALTH ESP LOGIC
             if nameActive then
                 billboard.Adornee = root
                 nameLabel.TextColor3 = dynamicColor
@@ -272,7 +261,6 @@ local function createESP(plr)
                 billboard.Enabled = false
             end
 
-            -- 3. TRACERS LOGIC
             if tracerActive then
                 local screenPos, onScreen = camera:WorldToViewportPoint(root.Position)
                 if onScreen then
@@ -287,7 +275,6 @@ local function createESP(plr)
                 tracerLine.Visible = false
             end
 
-            -- 4. SKELETON ESP LOGIC
             if skeletonActive then
                 local head = char:FindFirstChild("Head")
                 local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
@@ -344,7 +331,6 @@ end
 for _, p in pairs(players:GetPlayers()) do if p ~= player then createESP(p) end end
 players.PlayerAdded:Connect(function(p) if p ~= player then createESP(p) end end)
 
--- BASE MENU BUTTONS
 local farmBtn = createBtn("AUTOFARM: OFF [F1]", UDim2.new(0, 10, 0, 10), main, Color3.fromRGB(120, 40, 40))
 local illegalBtn = createBtn("ILLEGAL FARM: OFF [F2]", UDim2.new(0, 10, 0, 50), main, Color3.fromRGB(120, 40, 40))
 local noclipBtn = createBtn("NOCLIP: OFF [F3]", UDim2.new(0, 10, 0, 90), main)
@@ -352,7 +338,6 @@ local toggleTpBtn = createBtn("TP MENU [F4]", UDim2.new(0, 10, 0, 130), main, Co
 local toggleEspMenuBtn = createBtn("ESP MENU [F5]", UDim2.new(0, 10, 0, 170), main, Color3.fromRGB(0, 120, 80))
 local removeBtn = createBtn("REMOVE SCRIPT", UDim2.new(0, 10, 0, 215), main, Color3.fromRGB(150, 0, 0))
 
--- SEPARATED ESP MENU CONTROLS
 local toggleBoxBtn = createBtn("BOX ESP: OFF", UDim2.new(0, 10, 0, 10), espMenu)
 local toggleNameBtn = createBtn("NAME ESP: OFF", UDim2.new(0, 10, 0, 50), espMenu)
 local toggleTracerBtn = createBtn("TRACERS: OFF", UDim2.new(0, 10, 0, 90), espMenu)
@@ -382,7 +367,6 @@ toggleSkeletonBtn.MouseButton1Click:Connect(function()
     toggleSkeletonBtn.TextColor3 = skeletonActive and Color3.new(0,1,0) or Color3.new(1,1,1)
 end)
 
--- AUTOFARM BUTTON FUNCTIONS
 local function updateButtonVisuals()
     farmBtn.Text = farmActive and "AUTOFARM: ACTIVE [F1]" or "AUTOFARM: OFF [F1]"
     farmBtn.BackgroundColor3 = farmActive and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(120, 40, 40)
@@ -414,7 +398,6 @@ end)
 toggleTpBtn.MouseButton1Click:Connect(function() tpFrame.Visible = not tpFrame.Visible end)
 toggleEspMenuBtn.MouseButton1Click:Connect(function() espMenu.Visible = not espMenu.Visible end)
 
--- REMOVE SCRIPT FUNCTION
 removeBtn.MouseButton1Click:Connect(function()
     scriptRunning = false
     farmActive = false
@@ -427,7 +410,6 @@ removeBtn.MouseButton1Click:Connect(function()
     sg:Destroy()
 end)
 
--- HOTKEYS & CTRL-CLICK TELEPORT
 userInputService.InputBegan:Connect(function(i, g)
     if g then return end
     if i.KeyCode == Enum.KeyCode.F1 then 
@@ -463,7 +445,6 @@ userInputService.InputBegan:Connect(function(i, g)
     end
 end)
 
--- TELEPORT LOCATIONS LIST
 local function createTp(name, pos, y)
     local b = createBtn(name, UDim2.new(0, 10, 0, y), tpFrame)
     b.MouseButton1Click:Connect(function()
@@ -487,20 +468,18 @@ createTp("Hat Store", Vector3.new(60, 17, -70), 339)
 createTp("Houses", Vector3.new(30, 13, 433), 372)
 createTp("Illegal Guns", Vector3.new(-219, 14, 78), 405)
 createTp("Illegal Shop", Vector3.new(-67, 14, 60), 438)
-createTp("Mines", Vector3.new(-285, 14, 433), 471) -- Added Location Here
+createTp("Mines", Vector3.new(-285, 14, 433), 471)
 createTp("Permits Shop", Vector3.new(-143, 14, -10), 504)
 createTp("Rope", Vector3.new(-224, 38, 95), 537)
 createTp("Tacos", Vector3.new(-142, 14, 55), 570)
 createTp("Water Fountain", Vector3.new(-179, 14, 346), 603) 
 
--- BACKGROUND LOOPS
 runService.Stepped:Connect(function()
     if scriptRunning and noclip and player.Character then
         for _, v in pairs(player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
     end
 end)
 
--- SAFE LOOP EXECUTION WITH SPEEDS CUT IN HALF (0.05 loop, 0.15 wait)
 task.spawn(function()
     while scriptRunning do
         task.wait(0.05)
