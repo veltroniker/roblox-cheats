@@ -526,7 +526,7 @@ end)
 
 task.spawn(function()
     while scriptRunning do
-        task.wait(0.05)
+        task.wait(0.025)
         if (farmActive or illegalActive) and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local root = player.Character.HumanoidRootPart
             local buyPos = farmActive and REGULAR_BUY or ILLEGAL_BUY
@@ -537,14 +537,14 @@ task.spawn(function()
                 local crateInBackpack = backpack:FindFirstChild(crateName)
                 if not crateInBackpack and not player.Character:FindFirstChild(crateName) then
                     root.CFrame = CFrame.new(buyPos)
-                    task.wait(0.15)
+                    task.wait(0.075)
                     for _, d in pairs(workspace:GetDescendants()) do
                         if d:IsA("ProximityPrompt") and (d.Parent:GetPivot().Position - buyPos).Magnitude < 20 then fireproximityprompt(d) break end
                     end
                 else
                     if crateInBackpack then player.Character:FindFirstChildOfClass("Humanoid"):EquipTool(crateInBackpack) end
                     root.CFrame = CFrame.new(sellPos)
-                    task.wait(0.15)
+                    task.wait(0.075)
                     for _, d in pairs(workspace:GetDescendants()) do
                         if d:IsA("ProximityPrompt") and (d.Parent:GetPivot().Position - sellPos).Magnitude < 20 then fireproximityprompt(d) break end
                     end
