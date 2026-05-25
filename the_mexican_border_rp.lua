@@ -210,12 +210,21 @@ local function createESP(plr)
     healthBar.BorderSizePixel = 0
 
     local nameLabel = Instance.new("TextLabel", billboard)
-    nameLabel.Size = UDim2.new(1, 0, 0, 20)
+    nameLabel.Size = UDim2.new(1, 0, 0, 15)
     nameLabel.BackgroundTransparency = 1
     nameLabel.TextColor3 = Color3.new(1, 1, 1)
     nameLabel.TextStrokeTransparency = 0
     nameLabel.Font = Enum.Font.SourceSansBold
     nameLabel.TextSize = 12
+
+    local healthLabel = Instance.new("TextLabel", billboard)
+    healthLabel.Size = UDim2.new(1, 0, 0, 15)
+    healthLabel.Position = UDim2.new(0, 0, 0, 15)
+    healthLabel.BackgroundTransparency = 1
+    healthLabel.TextColor3 = Color3.new(0, 1, 0)
+    healthLabel.TextStrokeTransparency = 0
+    healthLabel.Font = Enum.Font.SourceSansBold
+    healthLabel.TextSize = 11
 
     local tracerLine = Drawing.new("Line")
     tracerLine.Thickness = 1.5
@@ -262,7 +271,11 @@ local function createESP(plr)
             if nameActive then
                 billboard.Adornee = root
                 nameLabel.TextColor3 = dynamicColor
-                nameLabel.Text = plr.Name .. " [" .. math.floor(hum.Health) .. "]"
+                nameLabel.Text = plr.Name
+                
+                local roundedHealth = math.floor(hum.Health)
+                healthLabel.Text = "HP: " .. roundedHealth .. "%"
+                healthLabel.TextColor3 = dynamicColor
                 
                 local healthRatio = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
                 healthBar.Size = UDim2.new(1, 0, healthRatio, 0)
@@ -366,7 +379,7 @@ end)
 
 toggleNameBtn.MouseButton1Click:Connect(function()
     nameActive = not nameActive
-    toggleNameBtn.Text = nameActive and "NAME ESP: ON" or "NAME ESP: OFF"
+    toggleNameBtn.Text = nameActive and "NAME/HP ESP: ON" or "NAME ESP: OFF"
     toggleNameBtn.TextColor3 = nameActive and Color3.new(0,1,0) or Color3.new(1,1,1)
 end)
 
@@ -409,13 +422,15 @@ local function toggleIllegal()
     updateButtonVisuals()
 end
 
+local function toggleNoclip()
+    noclip = not noclip
+    noclipBtn.Text = noclip and "NOCLIP: ACTIVE" or "NOCLIP: OFF"
+    noclipBtn.TextColor3 = noclip and Color3.new(0,1,0) or Color3.new(1,1,1)
+end
+
 farmBtn.MouseButton1Click:Connect(toggleFarm)
 illegalBtn.MouseButton1Click:Connect(toggleIllegal)
-
-noclipBtn.MouseButton1Click:Connect(function() 
-    noclip = not noclip 
-    noclipBtn.Text = noclip and "NOCLIP: ACTIVE" or "NOCLIP: OFF"
-end)
+noclipBtn.MouseButton1Click:Connect(toggleNoclip)
 
 toggleTpBtn.MouseButton1Click:Connect(function() tpFrame.Visible = not tpFrame.Visible end)
 toggleEspMenuBtn.MouseButton1Click:Connect(function() espMenu.Visible = not espMenu.Visible end)
@@ -440,8 +455,7 @@ userInputService.InputBegan:Connect(function(i, g)
     elseif i.KeyCode == Enum.KeyCode.F2 then 
         toggleIllegal()
     elseif i.KeyCode == Enum.KeyCode.F3 then 
-        noclip = not noclip
-        noclipBtn.Text = noclip and "NOCLIP: ACTIVE" or "NOCLIP: OFF"
+        toggleNoclip()
     elseif i.KeyCode == Enum.KeyCode.F4 then 
         tpFrame.Visible = not tpFrame.Visible
     elseif i.KeyCode == Enum.KeyCode.F5 then 
