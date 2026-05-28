@@ -24,6 +24,7 @@ local boxActive = false
 local nameActive = false
 local tracerActive = false
 local skeletonActive = false
+local crosshairActive = false
 local maxZoomActive = false
 local freecamActive = false
 
@@ -36,8 +37,12 @@ local cameraX = 0
 local cameraY = 0
 local focusPart = nil 
 
+local DEFAULT_IMAGE_ID = "rbxassetid://135832742939223"
+local currentCrosshairId = DEFAULT_IMAGE_ID
+local customCrosshairImage = nil
+
 local sg = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-sg.Name = "CrateMaster_V17_SplitESP"
+sg.Name = "CrateMaster_V35_Clean"
 sg.ResetOnSpawn = false
 
 local function makeDraggable(frame)
@@ -58,8 +63,8 @@ local function makeDraggable(frame)
 end
 
 local main = Instance.new("Frame", sg)
-main.Size = UDim2.new(0, 200, 0, 260)
-main.Position = UDim2.new(0, 10, 1, -270)
+main.Size = UDim2.new(0, 200, 0, 255)
+main.Position = UDim2.new(0, 10, 1, -265)
 main.BackgroundColor3 = Color3.new(0, 0, 0)
 main.BackgroundTransparency = 0.4
 makeDraggable(main)
@@ -84,8 +89,8 @@ makeDraggable(tpFrame)
 Instance.new("UICorner", tpFrame)
 
 local espMenu = Instance.new("Frame", sg)
-espMenu.Size = UDim2.new(0, 180, 0, 280)
-espMenu.Position = UDim2.new(0, 610, 1, -290)
+espMenu.Size = UDim2.new(0, 180, 0, 395)
+espMenu.Position = UDim2.new(0, 610, 1, -405)
 espMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 espMenu.BackgroundTransparency = 0.4
 espMenu.Visible = false
@@ -180,24 +185,17 @@ end
 local function getFaction(plr)
     if not plr.Team then return "Neutral" end
     local name = plr.Team.Name:lower()
-    if name:find("guard") or name:find("police") or name:find("mil") then
-        return "Guard"
-    elseif name:find("citizen") or name:find("foreigner") or name:find("civ") then
-        return "Civilian"
-    end
+    if name:find("guard") or name:find("police") or name:find("mil") then return "Guard"
+    elseif name:find("citizen") or name:find("foreigner") or name:find("civ") then return "Civilian" end
     return "Neutral"
 end
 
 local function getESPColor(targetPlr)
     local myFaction = getFaction(player)
     local targetFaction = getFaction(targetPlr)
-    if targetFaction == "Neutral" or myFaction == "Neutral" then
-        return Color3.fromRGB(200, 200, 200)
-    elseif myFaction == targetFaction then
-        return Color3.fromRGB(0, 255, 0)
-    else
-        return Color3.fromRGB(255, 0, 0)
-    end
+    if targetFaction == "Neutral" or myFaction == "Neutral" then return Color3.fromRGB(200, 200, 200)
+    elseif myFaction == targetFaction then return Color3.fromRGB(0, 255, 0)
+    else return Color3.fromRGB(255, 0, 0) end
 end
 
 local function createESP(plr)
@@ -265,9 +263,7 @@ local function createESP(plr)
     local connection
     connection = runService.RenderStepped:Connect(function()
         if not scriptRunning then 
-            box:Destroy()
-            billboard:Destroy()
-            tracerLine:Destroy()
+            box:Destroy(); billboard:Destroy(); tracerLine:Destroy()
             for _, line in pairs(skeletonLines) do line:Destroy() end
             connection:Disconnect()
             return 
@@ -280,9 +276,7 @@ local function createESP(plr)
             local dynamicColor = getESPColor(plr)
             
             if boxActive then
-                box.Adornee = root
-                box.Color3 = dynamicColor
-                box.Visible = true
+                box.Adornee = root; box.Color3 = dynamicColor; box.Visible = true
             else
                 box.Visible = false
             end
@@ -291,16 +285,13 @@ local function createESP(plr)
                 billboard.Adornee = root
                 nameLabel.TextColor3 = dynamicColor
                 nameLabel.Text = plr.Name
-                
                 local roundedHealth = math.floor(hum.Health)
                 healthLabel.Text = "HP: " .. roundedHealth .. "%"
                 healthLabel.TextColor3 = dynamicColor
-                
                 local healthRatio = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
                 healthBar.Size = UDim2.new(1, 0, healthRatio, 0)
                 healthBar.Position = UDim2.new(0, 0, 1 - healthRatio, 0)
                 healthBar.BackgroundColor3 = Color3.fromHSV(healthRatio * 0.3, 1, 1)
-                
                 billboard.Enabled = true
             else
                 billboard.Enabled = false
@@ -313,12 +304,8 @@ local function createESP(plr)
                     tracerLine.To = Vector2.new(screenPos.X, screenPos.Y)
                     tracerLine.Color = dynamicColor
                     tracerLine.Visible = true
-                else
-                    tracerLine.Visible = false
-                end
-            else
-                tracerLine.Visible = false
-            end
+                else tracerLine.Visible = false end
+            else tracerLine.Visible = false end
 
             if skeletonActive then
                 local head = char:FindFirstChild("Head")
@@ -337,70 +324,101 @@ local function createESP(plr)
                     local rightLegP, rightLegO = camera:WorldToViewportPoint(rightLeg.Position)
 
                     if torsoO then
-                        skeletonLines[1].From = Vector2.new(headP.X, headP.Y)
-                        skeletonLines[1].To = Vector2.new(torsoP.X, torsoP.Y)
-                        skeletonLines[2].From = Vector2.new(torsoP.X, torsoP.Y)
-                        skeletonLines[2].To = Vector2.new(leftArmP.X, leftArmP.Y)
-                        skeletonLines[3].From = Vector2.new(torsoP.X, torsoP.Y)
-                        skeletonLines[3].To = Vector2.new(rightArmP.X, rightArmP.Y)
-                        skeletonLines[4].From = Vector2.new(torsoP.X, torsoP.Y)
-                        skeletonLines[4].To = Vector2.new(leftLegP.X, leftLegP.Y)
-                        skeletonLines[5].From = Vector2.new(torsoP.X, torsoP.Y)
-                        skeletonLines[5].To = Vector2.new(rightLegP.X, rightLegP.Y)
-                        skeletonLines[6].From = Vector2.new(leftArmP.X, leftArmP.Y)
-                        skeletonLines[6].To = Vector2.new(rightArmP.X, rightArmP.Y)
-
-                        for _, line in pairs(skeletonLines) do
-                            line.Color = dynamicColor
-                            line.Visible = true
-                        end
-                    else
-                        hideSkeleton()
-                    end
-                else
-                    hideSkeleton()
-                end
-            else
-                hideSkeleton()
-            end
+                        skeletonLines[1].From = Vector2.new(headP.X, headP.Y); skeletonLines[1].To = Vector2.new(torsoP.X, torsoP.Y)
+                        skeletonLines[2].From = Vector2.new(torsoP.X, torsoP.Y); skeletonLines[2].To = Vector2.new(leftArmP.X, leftArmP.Y)
+                        skeletonLines[3].From = Vector2.new(torsoP.X, torsoP.Y); skeletonLines[3].To = Vector2.new(rightArmP.X, rightArmP.Y)
+                        skeletonLines[4].From = Vector2.new(torsoP.X, torsoP.Y); skeletonLines[4].To = Vector2.new(leftLegP.X, leftLegP.Y)
+                        skeletonLines[5].From = Vector2.new(torsoP.X, torsoP.Y); skeletonLines[5].To = Vector2.new(rightLegP.X, rightLegP.Y)
+                        skeletonLines[6].From = Vector2.new(leftArmP.X, leftArmP.Y); skeletonLines[6].To = Vector2.new(rightArmP.X, rightArmP.Y)
+                        for _, line in pairs(skeletonLines) do line.Color = dynamicColor; line.Visible = true end
+                    else hideSkeleton() end
+                else hideSkeleton() end
+            else hideSkeleton() end
         else
-            box.Visible = false
-            billboard.Enabled = false
-            tracerLine.Visible = false
-            hideSkeleton()
+            box.Visible = false; billboard.Enabled = false; tracerLine.Visible = false; hideSkeleton()
         end
     end)
     billboard.Parent = sg
 end
 
+local d1 = Drawing.new("Line")
+d1.Thickness = 2; d1.Transparency = 1; d1.Color = Color3.fromRGB(255, 0, 0)
+local d2 = Drawing.new("Line")
+d2.Thickness = 2; d2.Transparency = 1; d2.Color = Color3.fromRGB(255, 0, 0)
+local d3 = Drawing.new("Line")
+d3.Thickness = 2; d3.Transparency = 1; d3.Color = Color3.fromRGB(255, 0, 0)
+local d4 = Drawing.new("Line")
+d4.Thickness = 2; d4.Transparency = 1; d4.Color = Color3.fromRGB(255, 0, 0)
+
+local centerDot = Drawing.new("Circle")
+centerDot.Filled = true; centerDot.Radius = 3.5; centerDot.Transparency = 1; centerDot.Color = Color3.fromRGB(255, 0, 0)
+
+local crossV = Drawing.new("Line")
+crossV.Thickness = 2; crossV.Transparency = 1; crossV.Color = Color3.fromRGB(255, 0, 0)
+local crossH = Drawing.new("Line")
+crossH.Thickness = 2; crossH.Transparency = 1; crossH.Color = Color3.fromRGB(255, 0, 0)
+
+local function setupImageCrosshair()
+    if customCrosshairImage then customCrosshairImage:Destroy() end
+    customCrosshairImage = Instance.new("ImageLabel", sg)
+    customCrosshairImage.Name = "CustomCrosshairImage"
+    customCrosshairImage.BackgroundTransparency = 1
+    customCrosshairImage.AnchorPoint = Vector2.new(0.5, 0.5)
+    customCrosshairImage.Image = currentCrosshairId
+    customCrosshairImage.Visible = false
+    customCrosshairImage.Size = UDim2.new(0, 65, 0, 65) 
+end
+setupImageCrosshair()
+
 for _, p in pairs(players:GetPlayers()) do if p ~= player then createESP(p) end end
 players.PlayerAdded:Connect(function(p) if p ~= player then createESP(p) end end)
 
-local mainFrame = sg:FindFirstChild("Frame") or sg:GetChildren()[1]
+local mainFrame = main
 local farmBtn = createBtn("AUTOFARM: OFF [F1]", UDim2.new(0, 10, 0, 10), mainFrame, Color3.fromRGB(120, 40, 40))
 local illegalBtn = createBtn("ILLEGAL FARM: OFF [F2]", UDim2.new(0, 10, 0, 50), mainFrame, Color3.fromRGB(120, 40, 40))
 local toggleMoveBtn = createBtn("MOVEMENT MENU [F3]", UDim2.new(0, 10, 0, 90), mainFrame, Color3.fromRGB(80, 80, 40))
 local toggleTpBtn = createBtn("TP MENU [F4]", UDim2.new(0, 10, 0, 130), mainFrame, Color3.fromRGB(0, 80, 120))
 local toggleEspMenuBtn = createBtn("ESP MENU [F5]", UDim2.new(0, 10, 0, 170), mainFrame, Color3.fromRGB(0, 120, 80))
-local removeBtn = createBtn("REMOVE SCRIPT", UDim2.new(0, 10, 0, 215), mainFrame, Color3.fromRGB(150, 0, 0))
+local removeBtn = createBtn("REMOVE SCRIPT", UDim2.new(0, 10, 0, 210), mainFrame, Color3.fromRGB(150, 0, 0))
 
 local toggleBoxBtn = createBtn("BOX ESP: OFF", UDim2.new(0, 10, 0, 10), espMenu)
 local toggleNameBtn = createBtn("NAME ESP: OFF", UDim2.new(0, 10, 0, 50), espMenu)
 local toggleTracerBtn = createBtn("TRACERS: OFF", UDim2.new(0, 10, 0, 90), espMenu)
 local toggleSkeletonBtn = createBtn("SKELETON ESP: OFF", UDim2.new(0, 10, 0, 130), espMenu)
-local maxZoomBtn = createBtn("MAX ZOOM: OFF", UDim2.new(0, 10, 0, 170), espMenu, Color3.fromRGB(80, 40, 120))
-local freecamBtn = createBtn("FREE CAM: OFF", UDim2.new(0, 10, 0, 210), espMenu, Color3.fromRGB(40, 80, 120))
+local toggleCrossBtn = createBtn("CROSSHAIR: OFF", UDim2.new(0, 10, 0, 170), espMenu)
+local maxZoomBtn = createBtn("MAX ZOOM: OFF", UDim2.new(0, 10, 0, 210), espMenu, Color3.fromRGB(80, 40, 120))
+local freecamBtn = createBtn("FREE CAM: OFF", UDim2.new(0, 10, 0, 250), espMenu, Color3.fromRGB(40, 80, 120))
+
+local imageAssetBox = Instance.new("TextBox", espMenu)
+imageAssetBox.Size = UDim2.new(1, -20, 0, 25)
+imageAssetBox.Position = UDim2.new(0, 10, 0, 290)
+imageAssetBox.PlaceholderText = "Paste Asset ID / Link..."
+imageAssetBox.Text = DEFAULT_IMAGE_ID
+imageAssetBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+imageAssetBox.TextColor3 = Color3.fromRGB(200, 200, 200)
+imageAssetBox.ClearTextOnFocus = false
+imageAssetBox.TextSize = 10
+Instance.new("UICorner", imageAssetBox)
+
+local applyImageBtn = createBtn("SET CUSTOM CROSSHAIR IMG", UDim2.new(0, 10, 0, 320), espMenu, Color3.fromRGB(0, 90, 140))
+local sizeBox = Instance.new("TextBox", espMenu)
+sizeBox.Size = UDim2.new(1, -20, 0, 25)
+sizeBox.Position = UDim2.new(0, 10, 0, 355)
+sizeBox.PlaceholderText = "Image Sizing (Default 65)..."
+sizeBox.Text = "65"
+sizeBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+sizeBox.TextColor3 = Color3.fromRGB(200, 200, 200)
+Instance.new("UICorner", sizeBox)
 
 local noclipBtn = createBtn("NOCLIP: OFF", UDim2.new(0, 10, 0, 10), moveMenu)
 
 local speedBox = Instance.new("TextBox", moveMenu)
 speedBox.Size = UDim2.new(1, -20, 0, 25)
 speedBox.Position = UDim2.new(0, 10, 0, 50)
-speedBox.PlaceholderText = "WalkSpeed (Default: 16)..."
+speedBox.PlaceholderText = "WalkSpeed..."
 speedBox.Text = "16"
 speedBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 speedBox.TextColor3 = Color3.new(1, 1, 1)
-speedBox.ClearTextOnFocus = false
 Instance.new("UICorner", speedBox)
 
 local applySpeedBtn = createBtn("SET WALKSPEED", UDim2.new(0, 10, 0, 85), moveMenu, Color3.fromRGB(0, 120, 150))
@@ -408,11 +426,10 @@ local applySpeedBtn = createBtn("SET WALKSPEED", UDim2.new(0, 10, 0, 85), moveMe
 local jumpBox = Instance.new("TextBox", moveMenu)
 jumpBox.Size = UDim2.new(1, -20, 0, 25)
 jumpBox.Position = UDim2.new(0, 10, 0, 125)
-jumpBox.PlaceholderText = "JumpPower / Height..."
+jumpBox.PlaceholderText = "JumpPower..."
 jumpBox.Text = "50"
 jumpBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 jumpBox.TextColor3 = Color3.new(1, 1, 1)
-jumpBox.ClearTextOnFocus = false
 Instance.new("UICorner", jumpBox)
 
 local applyJumpBtn = createBtn("SET JUMP HEIGHT", UDim2.new(0, 10, 0, 160), moveMenu, Color3.fromRGB(150, 100, 0))
@@ -441,11 +458,34 @@ toggleSkeletonBtn.MouseButton1Click:Connect(function()
     toggleSkeletonBtn.TextColor3 = skeletonActive and Color3.new(0,1,0) or Color3.new(1,1,1)
 end)
 
+toggleCrossBtn.MouseButton1Click:Connect(function()
+    crosshairActive = not crosshairActive
+    toggleCrossBtn.Text = crosshairActive and "CROSSHAIR: ON" or "CROSSHAIR: OFF"
+    toggleCrossBtn.TextColor3 = crosshairActive and Color3.new(0,1,0) or Color3.new(1,1,1)
+end)
+
 maxZoomBtn.MouseButton1Click:Connect(function()
     maxZoomActive = not maxZoomActive
     maxZoomBtn.Text = maxZoomActive and "MAX ZOOM: ON" or "MAX ZOOM: OFF"
     maxZoomBtn.TextColor3 = maxZoomActive and Color3.new(0,1,0) or Color3.new(1,1,1)
     player.CameraMaxZoomDistance = maxZoomActive and 1000 or 400
+end)
+
+applyImageBtn.MouseButton1Click:Connect(function()
+    local text = imageAssetBox.Text
+    if text:find("rbxassetid://") then
+        currentCrosshairId = text
+    elseif tonumber(text) then
+        currentCrosshairId = "rbxassetid://" .. text
+    else
+        currentCrosshairId = text
+    end
+    if customCrosshairImage then customCrosshairImage.Image = currentCrosshairId end
+    
+    local parsedSize = tonumber(sizeBox.Text)
+    if parsedSize and customCrosshairImage then
+        customCrosshairImage.Size = UDim2.new(0, parsedSize, 0, parsedSize)
+    end
 end)
 
 freecamBtn.MouseButton1Click:Connect(function()
@@ -456,23 +496,16 @@ freecamBtn.MouseButton1Click:Connect(function()
     if freecamActive then
         originalCameraType = camera.CameraType
         originalMouseBehavior = userInputService.MouseBehavior
-        
         freecamCFrame = camera.CFrame
-        
         local startRotation = camera.CFrame - camera.CFrame.Position
         local _, y, _ = startRotation:ToEulerAnglesYXZ()
-        cameraX = 0
-        cameraY = math.deg(y)
-        
+        cameraX = 0; cameraY = math.deg(y)
         camera.CameraType = Enum.CameraType.Scriptable
 
         if not focusPart then
             focusPart = Instance.new("Part")
             focusPart.Name = "CamStreamingFocus"
-            focusPart.Anchored = true
-            focusPart.CanCollide = false
-            focusPart.Transparency = 1
-            focusPart.Size = Vector3.new(1, 1, 1)
+            focusPart.Anchored = true; focusPart.CanCollide = false; focusPart.Transparency = 1; focusPart.Size = Vector3.new(1, 1, 1)
             focusPart.Parent = workspace
         end
         focusPart.CFrame = freecamCFrame
@@ -480,18 +513,12 @@ freecamBtn.MouseButton1Click:Connect(function()
     else
         camera.CameraType = originalCameraType
         userInputService.MouseBehavior = Enum.MouseBehavior.Default
-        
         player.ReplicationFocus = nil
-        if focusPart then
-            focusPart:Destroy()
-            focusPart = nil
-        end
-
+        if focusPart then focusPart:Destroy() focusPart = nil end
         if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
             local hum = player.Character:FindFirstChildOfClass("Humanoid")
             camera.CameraSubject = hum
-            hum.WalkSpeed = customWalkSpeed
-            hum.JumpPower = customJumpPower
+            hum.WalkSpeed = customWalkSpeed; hum.JumpPower = customJumpPower
         end
     end
 end)
@@ -503,42 +530,23 @@ local function updateButtonVisuals()
     illegalBtn.BackgroundColor3 = illegalActive and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(120, 40, 40)
 end
 
-local function toggleFarm()
-    farmActive = not farmActive
-    if farmActive then illegalActive = false end
-    updateButtonVisuals()
-end
-
-local function toggleIllegal()
-    illegalActive = not illegalActive
-    if illegalActive then farmActive = false end
-    updateButtonVisuals()
-end
-
-local function toggleNoclip()
-    noclip = not noclip
-    noclipBtn.Text = noclip and "NOCLIP: ACTIVE" or "NOCLIP: OFF"
-    noclipBtn.TextColor3 = noclip and Color3.new(0,1,0) or Color3.new(1,1,1)
-end
+local function toggleFarm() farmActive = not farmActive; if farmActive then illegalActive = false end; updateButtonVisuals() end
+local function toggleIllegal() illegalActive = not illegalActive; if illegalActive then farmActive = false end; updateButtonVisuals() end
+local function toggleNoclip() noclip = not noclip; noclipBtn.Text = noclip and "NOCLIP: ACTIVE" or "NOCLIP: OFF"; noclipBtn.TextColor3 = noclip and Color3.new(0,1,0) or Color3.new(1,1,1) end
 
 applySpeedBtn.MouseButton1Click:Connect(function()
     local targetSpeed = tonumber(speedBox.Text)
-    if targetSpeed then
-        customWalkSpeed = targetSpeed
-        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-            player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = customWalkSpeed
-        end
+    if targetSpeed then customWalkSpeed = targetSpeed
+        if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = customWalkSpeed end
     end
 end)
 
 applyJumpBtn.MouseButton1Click:Connect(function()
     local targetJump = tonumber(jumpBox.Text)
-    if targetJump then
-        customJumpPower = targetJump
+    if targetJump then customJumpPower = targetJump
         if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
             local hum = player.Character:FindFirstChildOfClass("Humanoid")
-            hum.UseJumpPower = true
-            hum.JumpPower = customJumpPower
+            hum.UseJumpPower = true; hum.JumpPower = customJumpPower
         end
     end
 end)
@@ -552,56 +560,38 @@ toggleTpBtn.MouseButton1Click:Connect(function() tpFrame.Visible = not tpFrame.V
 toggleEspMenuBtn.MouseButton1Click:Connect(function() espMenu.Visible = not espMenu.Visible end)
 
 removeBtn.MouseButton1Click:Connect(function()
-    scriptRunning = false
-    farmActive = false
-    illegalActive = false
-    noclip = false
-    boxActive = false
-    nameActive = false
-    tracerActive = false
-    skeletonActive = false
-    freecamActive = false
-    camera.CameraType = originalCameraType
-    userInputService.MouseBehavior = Enum.MouseBehavior.Default
-    player.CameraMaxZoomDistance = 400
-    player.ReplicationFocus = nil
+    scriptRunning = false; farmActive = false; illegalActive = false; noclip = false
+    boxActive = false; nameActive = false; tracerActive = false; skeletonActive = false; crosshairActive = false; freecamActive = false
+    camera.CameraType = originalCameraType; userInputService.MouseBehavior = Enum.MouseBehavior.Default
+    player.CameraMaxZoomDistance = 400; player.ReplicationFocus = nil
+    d1:Destroy(); d2:Destroy(); d3:Destroy(); d4:Destroy(); centerDot:Destroy(); crossV:Destroy(); crossH:Destroy()
+    if customCrosshairImage then customCrosshairImage:Destroy() end
     if focusPart then focusPart:Destroy() focusPart = nil end
     if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        hum.WalkSpeed = 16
-        hum.JumpPower = 50
-        camera.CameraSubject = hum
+        hum.WalkSpeed = 16; hum.JumpPower = 50; camera.CameraSubject = hum
     end
     sg:Destroy()
 end)
 
 userInputService.InputBegan:Connect(function(i, g)
     if g then return end
-    if i.KeyCode == Enum.KeyCode.F1 then 
-        toggleFarm()
-    elseif i.KeyCode == Enum.KeyCode.F2 then 
-        toggleIllegal()
-    elseif i.KeyCode == Enum.KeyCode.F3 then 
-        moveMenu.Visible = not moveMenu.Visible
-    elseif i.KeyCode == Enum.KeyCode.F4 then 
-        tpFrame.Visible = not tpFrame.Visible
-    elseif i.KeyCode == Enum.KeyCode.F5 then 
-        espMenu.Visible = not espMenu.Visible 
-    elseif i.UserInputType == Enum.UserInputType.MouseButton1 then
-        if userInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local mousePos = userInputService:GetMouseLocation()
-                local unitRay = camera:ViewportPointToRay(mousePos.X, mousePos.Y)
-                local raycastParams = RaycastParams.new()
-                raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-                raycastParams.FilterDescendantsInstances = {player.Character}
-                local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 5000, raycastParams)
-                if raycastResult then
-                    farmActive = false
-                    illegalActive = false
-                    updateButtonVisuals()
-                    player.Character.HumanoidRootPart.CFrame = CFrame.new(raycastResult.Position + Vector3.new(0, 3, 0))
-                end
+    if i.KeyCode == Enum.KeyCode.F1 then toggleFarm()
+    elseif i.KeyCode == Enum.KeyCode.F2 then toggleIllegal()
+    elseif i.KeyCode == Enum.KeyCode.F3 then moveMenu.Visible = not moveMenu.Visible
+    elseif i.KeyCode == Enum.KeyCode.F4 then tpFrame.Visible = not tpFrame.Visible
+    elseif i.KeyCode == Enum.KeyCode.F5 then espMenu.Visible = not espMenu.Visible 
+    elseif i.UserInputType == Enum.UserInputType.MouseButton1 and userInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local mousePos = userInputService:GetMouseLocation()
+            local unitRay = camera:ViewportPointToRay(mousePos.X, mousePos.Y)
+            local raycastParams = RaycastParams.new()
+            raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+            raycastParams.FilterDescendantsInstances = {player.Character}
+            local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 5000, raycastParams)
+            if raycastResult then
+                farmActive = false; illegalActive = false; updateButtonVisuals()
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(raycastResult.Position + Vector3.new(0, 3, 0))
             end
         end
     end
@@ -611,11 +601,8 @@ local function createTp(name, pos)
     local b = createBtn(name, UDim2.new(0, 0, 0, 0), tpScroll)
     b.Size = UDim2.new(1, -10, 0, 28)
     b.MouseButton1Click:Connect(function()
-        farmActive = false; illegalActive = false
-        updateButtonVisuals()
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
-        end
+        farmActive = false; illegalActive = false; updateButtonVisuals()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then player.Character.HumanoidRootPart.CFrame = CFrame.new(pos) end
     end)
 end
 
@@ -639,34 +626,110 @@ createTp("Tacos", Vector3.new(-142, 14, 55))
 createTp("Water Fountain", Vector3.new(-179, 14, 346)) 
 
 tpScroll.CanvasSize = UDim2.new(0, 0, 0, tpListLayout.AbsoluteContentSize.Y + 10)
-tpListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    tpScroll.CanvasSize = UDim2.new(0, 0, 0, tpListLayout.AbsoluteContentSize.Y + 10)
-end)
+tpListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() tpScroll.CanvasSize = UDim2.new(0, 0, 0, tpListLayout.AbsoluteContentSize.Y + 10) end)
 
 runService.Stepped:Connect(function()
     if scriptRunning and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        local holdingWeapon = player.Character:FindFirstChildOfClass("Tool")
         
-        if freecamActive then
-            if hum then
-                hum.WalkSpeed = 0
-                hum.JumpPower = 0
+        if crosshairActive and holdingWeapon then
+            local center = camera.ViewportSize / 2
+            local adjustedY = center.Y - 55
+            
+            local hittingPlayer = false
+            local unitRay = camera:ViewportPointToRay(center.X, adjustedY)
+            local raycastParams = RaycastParams.new()
+            raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+            raycastParams.FilterDescendantsInstances = {player.Character}
+            local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 1000, raycastParams)
+            
+            if raycastResult and raycastResult.Instance then
+                local hitChar = raycastResult.Instance:FindFirstAncestorOfClass("Model")
+                if hitChar and hitChar:FindFirstChildOfClass("Humanoid") and players:GetPlayerFromCharacter(hitChar) then
+                    hittingPlayer = true
+                end
             end
             
+            local innerGap = 13
+            local lineLength = 11
+            
+            d1.From = Vector2.new(center.X - innerGap - lineLength, adjustedY - innerGap - lineLength)
+            d1.To = Vector2.new(center.X - innerGap, adjustedY - innerGap)
+            
+            d2.From = Vector2.new(center.X + innerGap, adjustedY - innerGap)
+            d2.To = Vector2.new(center.X + innerGap + lineLength, adjustedY - innerGap - lineLength)
+            
+            d3.From = Vector2.new(center.X - innerGap - lineLength, adjustedY + innerGap + lineLength)
+            d3.To = Vector2.new(center.X - innerGap, adjustedY + innerGap)
+            
+            d4.From = Vector2.new(center.X + innerGap, adjustedY + innerGap)
+            d4.To = Vector2.new(center.X + innerGap + lineLength, adjustedY + innerGap + lineLength)
+            
+            centerDot.Position = Vector2.new(center.X, adjustedY)
+            
+            d1.Visible = true
+            d2.Visible = true
+            d3.Visible = true
+            d4.Visible = true
+            centerDot.Visible = true
+            
+            if hittingPlayer then
+                crossV.Thickness = 5.5
+                crossH.Thickness = 5.5
+                crossV.From = Vector2.new(center.X, adjustedY - 24)
+                crossV.To = Vector2.new(center.X, adjustedY + 24)
+                crossH.From = Vector2.new(center.X - 24, adjustedY)
+                crossH.To = Vector2.new(center.X + 24, adjustedY)
+                crossV.Visible = true
+                crossH.Visible = true
+                
+                if customCrosshairImage then
+                    customCrosshairImage.ImageColor3 = Color3.fromRGB(255, 50, 50)
+                end
+            else
+                crossV.Thickness = 2
+                crossH.Thickness = 2
+                crossV.From = Vector2.new(center.X, adjustedY - 24)
+                crossV.To = Vector2.new(center.X, adjustedY + 24)
+                crossH.From = Vector2.new(center.X - 24, adjustedY)
+                crossH.To = Vector2.new(center.X + 24, adjustedY)
+                crossV.Visible = true
+                crossH.Visible = true
+                
+                if customCrosshairImage then
+                    customCrosshairImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
+                end
+            end
+            
+            if customCrosshairImage then
+                customCrosshairImage.Position = UDim2.new(0, center.X, 0, adjustedY)
+                customCrosshairImage.Visible = true
+            end
+        else
+            d1.Visible = false
+            d2.Visible = false
+            d3.Visible = false
+            d4.Visible = false
+            centerDot.Visible = false
+            crossV.Visible = false
+            crossH.Visible = false
+            if customCrosshairImage then customCrosshairImage.Visible = false end
+        end
+
+        if freecamActive then
+            if hum then hum.WalkSpeed = 0; hum.JumpPower = 0 end
             if userInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
                 userInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
                 local mouseDelta = userInputService:GetMouseDelta()
                 cameraX = cameraX - (mouseDelta.Y * 0.4)
                 cameraY = cameraY - (mouseDelta.X * 0.4)
                 cameraX = math.clamp(cameraX, -80, 80)
-            else
-                userInputService.MouseBehavior = Enum.MouseBehavior.Default
-            end
+            else userInputService.MouseBehavior = Enum.MouseBehavior.Default end
             
             local lookVector = camera.CFrame.LookVector
             local rightVector = camera.CFrame.RightVector
             local moveDirection = Vector3.new()
-            
             if userInputService:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + lookVector end
             if userInputService:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - lookVector end
             if userInputService:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - rightVector end
@@ -674,41 +737,40 @@ runService.Stepped:Connect(function()
             if userInputService:IsKeyDown(Enum.KeyCode.E) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
             if userInputService:IsKeyDown(Enum.KeyCode.Q) then moveDirection = moveDirection - Vector3.new(0, 1, 0) end
             
-            if moveDirection.Magnitude > 0 then
-                freecamCFrame = freecamCFrame + (moveDirection.Unit * freecamSpeed)
-            end
-            
+            if moveDirection.Magnitude > 0 then freecamCFrame = freecamCFrame + (moveDirection.Unit * freecamSpeed) end
             camera.CFrame = CFrame.new(freecamCFrame.Position) * CFrame.Angles(0, math.rad(cameraY), 0) * CFrame.Angles(math.rad(cameraX), 0, 0)
             freecamCFrame = camera.CFrame
-
-            if focusPart then
-                focusPart.CFrame = freecamCFrame
-            end
-            
-            pcall(function()
-                player.SimulationRadius = 10000
-                settings().Physics.AllowSleep = false
-            end)
+            if focusPart then focusPart.CFrame = freecamCFrame end
         else
             if noclip then
                 for _, v in pairs(player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
             end
             if hum then
-                if hum.WalkSpeed ~= customWalkSpeed then
-                    hum.WalkSpeed = customWalkSpeed
-                end
-                if hum.JumpPower ~= customJumpPower then
-                    hum.UseJumpPower = true
-                    hum.JumpPower = customJumpPower
-                end
+                if hum.WalkSpeed ~= customWalkSpeed then hum.WalkSpeed = customWalkSpeed end
+                if hum.JumpPower ~= customJumpPower then hum.UseJumpPower = true; hum.JumpPower = customJumpPower end
             end
         end
     end
 end)
 
+local function fireClosestPrompt(pos)
+    local bestPrompt = nil
+    local minDistance = 45
+    for _, d in pairs(workspace:GetDescendants()) do
+        if d:IsA("ProximityPrompt") then
+            local pPart = d.Parent
+            if pPart and pPart:IsA("BasePart") then
+                local dMag = (pPart.Position - pos).Magnitude
+                if dMag < minDistance then minDistance = dMag; bestPrompt = d end
+            end
+        end
+    end
+    if bestPrompt then pcall(function() fireproximityprompt(bestPrompt) end) end
+end
+
 task.spawn(function()
     while scriptRunning do
-        task.wait(0.0125)
+        task.wait(0.08)
         if (farmActive or illegalActive) and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local root = player.Character.HumanoidRootPart
             local buyPos = farmActive and REGULAR_BUY or ILLEGAL_BUY
@@ -718,18 +780,14 @@ task.spawn(function()
             if crateName then
                 local crateInBackpack = backpack:FindFirstChild(crateName)
                 if not crateInBackpack and not player.Character:FindFirstChild(crateName) then
-                    root.CFrame = CFrame.new(buyPos)
-                    task.wait(0.0375)
-                    for _, d in pairs(workspace:GetDescendants()) do
-                        if d:IsA("ProximityPrompt") and (d.Parent:GetPivot().Position - buyPos).Magnitude < 20 then fireproximityprompt(d) break end
-                    end
+                    root.CFrame = CFrame.new(buyPos + Vector3.new(0, 2, 0))
+                    task.wait(0.15)
+                    fireClosestPrompt(buyPos)
                 else
                     if crateInBackpack then player.Character:FindFirstChildOfClass("Humanoid"):EquipTool(crateInBackpack) end
-                    root.CFrame = CFrame.new(sellPos)
-                    task.wait(0.0375)
-                    for _, d in pairs(workspace:GetDescendants()) do
-                        if d:IsA("ProximityPrompt") and (d.Parent:GetPivot().Position - sellPos).Magnitude < 20 then fireproximityprompt(d) break end
-                    end
+                    root.CFrame = CFrame.new(sellPos + Vector3.new(0, 2, 0))
+                    task.wait(0.15)
+                    fireClosestPrompt(sellPos)
                 end
             end
         end
