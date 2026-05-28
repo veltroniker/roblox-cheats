@@ -37,12 +37,8 @@ local cameraX = 0
 local cameraY = 0
 local focusPart = nil 
 
-local DEFAULT_IMAGE_ID = "rbxassetid://135832742939223"
-local currentCrosshairId = DEFAULT_IMAGE_ID
-local customCrosshairImage = nil
-
 local sg = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-sg.Name = "CrateMaster_V35_Clean"
+sg.Name = "CrateMaster_V34_Clean"
 sg.ResetOnSpawn = false
 
 local function makeDraggable(frame)
@@ -89,8 +85,8 @@ makeDraggable(tpFrame)
 Instance.new("UICorner", tpFrame)
 
 local espMenu = Instance.new("Frame", sg)
-espMenu.Size = UDim2.new(0, 180, 0, 395)
-espMenu.Position = UDim2.new(0, 610, 1, -405)
+espMenu.Size = UDim2.new(0, 180, 0, 320)
+espMenu.Position = UDim2.new(0, 610, 1, -330)
 espMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 espMenu.BackgroundTransparency = 0.4
 espMenu.Visible = false
@@ -342,33 +338,40 @@ local function createESP(plr)
 end
 
 local d1 = Drawing.new("Line")
-d1.Thickness = 2; d1.Transparency = 1; d1.Color = Color3.fromRGB(255, 0, 0)
+d1.Thickness = 2
+d1.Transparency = 1
+d1.Color = Color3.fromRGB(255, 0, 0)
+
 local d2 = Drawing.new("Line")
-d2.Thickness = 2; d2.Transparency = 1; d2.Color = Color3.fromRGB(255, 0, 0)
+d2.Thickness = 2
+d2.Transparency = 1
+d2.Color = Color3.fromRGB(255, 0, 0)
+
 local d3 = Drawing.new("Line")
-d3.Thickness = 2; d3.Transparency = 1; d3.Color = Color3.fromRGB(255, 0, 0)
+d3.Thickness = 2
+d3.Transparency = 1
+d3.Color = Color3.fromRGB(255, 0, 0)
+
 local d4 = Drawing.new("Line")
-d4.Thickness = 2; d4.Transparency = 1; d4.Color = Color3.fromRGB(255, 0, 0)
+d4.Thickness = 2
+d4.Transparency = 1
+d4.Color = Color3.fromRGB(255, 0, 0)
 
 local centerDot = Drawing.new("Circle")
-centerDot.Filled = true; centerDot.Radius = 3.5; centerDot.Transparency = 1; centerDot.Color = Color3.fromRGB(255, 0, 0)
+centerDot.Filled = true
+centerDot.Radius = 3.5
+centerDot.Transparency = 1
+centerDot.Color = Color3.fromRGB(255, 0, 0)
 
 local crossV = Drawing.new("Line")
-crossV.Thickness = 2; crossV.Transparency = 1; crossV.Color = Color3.fromRGB(255, 0, 0)
-local crossH = Drawing.new("Line")
-crossH.Thickness = 2; crossH.Transparency = 1; crossH.Color = Color3.fromRGB(255, 0, 0)
+crossV.Thickness = 2
+crossV.Transparency = 1
+crossV.Color = Color3.fromRGB(255, 0, 0)
 
-local function setupImageCrosshair()
-    if customCrosshairImage then customCrosshairImage:Destroy() end
-    customCrosshairImage = Instance.new("ImageLabel", sg)
-    customCrosshairImage.Name = "CustomCrosshairImage"
-    customCrosshairImage.BackgroundTransparency = 1
-    customCrosshairImage.AnchorPoint = Vector2.new(0.5, 0.5)
-    customCrosshairImage.Image = currentCrosshairId
-    customCrosshairImage.Visible = false
-    customCrosshairImage.Size = UDim2.new(0, 65, 0, 65) 
-end
-setupImageCrosshair()
+local crossH = Drawing.new("Line")
+crossH.Thickness = 2
+crossH.Transparency = 1
+crossH.Color = Color3.fromRGB(255, 0, 0)
 
 for _, p in pairs(players:GetPlayers()) do if p ~= player then createESP(p) end end
 players.PlayerAdded:Connect(function(p) if p ~= player then createESP(p) end end)
@@ -388,27 +391,6 @@ local toggleSkeletonBtn = createBtn("SKELETON ESP: OFF", UDim2.new(0, 10, 0, 130
 local toggleCrossBtn = createBtn("CROSSHAIR: OFF", UDim2.new(0, 10, 0, 170), espMenu)
 local maxZoomBtn = createBtn("MAX ZOOM: OFF", UDim2.new(0, 10, 0, 210), espMenu, Color3.fromRGB(80, 40, 120))
 local freecamBtn = createBtn("FREE CAM: OFF", UDim2.new(0, 10, 0, 250), espMenu, Color3.fromRGB(40, 80, 120))
-
-local imageAssetBox = Instance.new("TextBox", espMenu)
-imageAssetBox.Size = UDim2.new(1, -20, 0, 25)
-imageAssetBox.Position = UDim2.new(0, 10, 0, 290)
-imageAssetBox.PlaceholderText = "Paste Asset ID / Link..."
-imageAssetBox.Text = DEFAULT_IMAGE_ID
-imageAssetBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-imageAssetBox.TextColor3 = Color3.fromRGB(200, 200, 200)
-imageAssetBox.ClearTextOnFocus = false
-imageAssetBox.TextSize = 10
-Instance.new("UICorner", imageAssetBox)
-
-local applyImageBtn = createBtn("SET CUSTOM CROSSHAIR IMG", UDim2.new(0, 10, 0, 320), espMenu, Color3.fromRGB(0, 90, 140))
-local sizeBox = Instance.new("TextBox", espMenu)
-sizeBox.Size = UDim2.new(1, -20, 0, 25)
-sizeBox.Position = UDim2.new(0, 10, 0, 355)
-sizeBox.PlaceholderText = "Image Sizing (Default 65)..."
-sizeBox.Text = "65"
-sizeBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-sizeBox.TextColor3 = Color3.fromRGB(200, 200, 200)
-Instance.new("UICorner", sizeBox)
 
 local noclipBtn = createBtn("NOCLIP: OFF", UDim2.new(0, 10, 0, 10), moveMenu)
 
@@ -469,23 +451,6 @@ maxZoomBtn.MouseButton1Click:Connect(function()
     maxZoomBtn.Text = maxZoomActive and "MAX ZOOM: ON" or "MAX ZOOM: OFF"
     maxZoomBtn.TextColor3 = maxZoomActive and Color3.new(0,1,0) or Color3.new(1,1,1)
     player.CameraMaxZoomDistance = maxZoomActive and 1000 or 400
-end)
-
-applyImageBtn.MouseButton1Click:Connect(function()
-    local text = imageAssetBox.Text
-    if text:find("rbxassetid://") then
-        currentCrosshairId = text
-    elseif tonumber(text) then
-        currentCrosshairId = "rbxassetid://" .. text
-    else
-        currentCrosshairId = text
-    end
-    if customCrosshairImage then customCrosshairImage.Image = currentCrosshairId end
-    
-    local parsedSize = tonumber(sizeBox.Text)
-    if parsedSize and customCrosshairImage then
-        customCrosshairImage.Size = UDim2.new(0, parsedSize, 0, parsedSize)
-    end
 end)
 
 freecamBtn.MouseButton1Click:Connect(function()
@@ -565,7 +530,6 @@ removeBtn.MouseButton1Click:Connect(function()
     camera.CameraType = originalCameraType; userInputService.MouseBehavior = Enum.MouseBehavior.Default
     player.CameraMaxZoomDistance = 400; player.ReplicationFocus = nil
     d1:Destroy(); d2:Destroy(); d3:Destroy(); d4:Destroy(); centerDot:Destroy(); crossV:Destroy(); crossH:Destroy()
-    if customCrosshairImage then customCrosshairImage:Destroy() end
     if focusPart then focusPart:Destroy() focusPart = nil end
     if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
@@ -674,6 +638,52 @@ runService.Stepped:Connect(function()
             d4.Visible = true
             centerDot.Visible = true
             
+            runService.Stepped:Connect(function()
+    if scriptRunning and player.Character then
+        local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        local holdingWeapon = player.Character:FindFirstChildOfClass("Tool")
+        
+        if crosshairActive and holdingWeapon then
+            local center = camera.ViewportSize / 2
+            local adjustedY = center.Y - 55
+            
+            local hittingPlayer = false
+            local unitRay = camera:ViewportPointToRay(center.X, adjustedY)
+            local raycastParams = RaycastParams.new()
+            raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+            raycastParams.FilterDescendantsInstances = {player.Character}
+            local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 1000, raycastParams)
+            
+            if raycastResult and raycastResult.Instance then
+                local hitChar = raycastResult.Instance:FindFirstAncestorOfClass("Model")
+                if hitChar and hitChar:FindFirstChildOfClass("Humanoid") and players:GetPlayerFromCharacter(hitChar) then
+                    hittingPlayer = true
+                end
+            end
+            
+            local innerGap = 13
+            local lineLength = 11
+            
+            d1.From = Vector2.new(center.X - innerGap - lineLength, adjustedY - innerGap - lineLength)
+            d1.To = Vector2.new(center.X - innerGap, adjustedY - innerGap)
+            
+            d2.From = Vector2.new(center.X + innerGap, adjustedY - innerGap)
+            d2.To = Vector2.new(center.X + innerGap + lineLength, adjustedY - innerGap - lineLength)
+            
+            d3.From = Vector2.new(center.X - innerGap - lineLength, adjustedY + innerGap + lineLength)
+            d3.To = Vector2.new(center.X - innerGap, adjustedY + innerGap)
+            
+            d4.From = Vector2.new(center.X + innerGap, adjustedY + innerGap)
+            d4.To = Vector2.new(center.X + innerGap + lineLength, adjustedY + innerGap + lineLength)
+            
+            centerDot.Position = Vector2.new(center.X, adjustedY)
+            
+            d1.Visible = true
+            d2.Visible = true
+            d3.Visible = true
+            d4.Visible = true
+            centerDot.Visible = true
+            
             if hittingPlayer then
                 crossV.Thickness = 5.5
                 crossH.Thickness = 5.5
@@ -683,28 +693,9 @@ runService.Stepped:Connect(function()
                 crossH.To = Vector2.new(center.X + 24, adjustedY)
                 crossV.Visible = true
                 crossH.Visible = true
-                
-                if customCrosshairImage then
-                    customCrosshairImage.ImageColor3 = Color3.fromRGB(255, 50, 50)
-                end
             else
-                crossV.Thickness = 2
-                crossH.Thickness = 2
-                crossV.From = Vector2.new(center.X, adjustedY - 24)
-                crossV.To = Vector2.new(center.X, adjustedY + 24)
-                crossH.From = Vector2.new(center.X - 24, adjustedY)
-                crossH.To = Vector2.new(center.X + 24, adjustedY)
-                crossV.Visible = true
-                crossH.Visible = true
-                
-                if customCrosshairImage then
-                    customCrosshairImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-                end
-            end
-            
-            if customCrosshairImage then
-                customCrosshairImage.Position = UDim2.new(0, center.X, 0, adjustedY)
-                customCrosshairImage.Visible = true
+                crossV.Visible = false
+                crossH.Visible = false
             end
         else
             d1.Visible = false
@@ -714,8 +705,9 @@ runService.Stepped:Connect(function()
             centerDot.Visible = false
             crossV.Visible = false
             crossH.Visible = false
-            if customCrosshairImage then customCrosshairImage.Visible = false end
         end
+    end
+end)
 
         if freecamActive then
             if hum then hum.WalkSpeed = 0; hum.JumpPower = 0 end
