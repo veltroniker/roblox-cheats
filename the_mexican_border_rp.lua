@@ -570,6 +570,7 @@ local function createTp(name, pos)
     end)
 end
 
+createTp("Apartments", Vector3.new(51, 14, 149))
 createTp("Bank", Vector3.new(-22, 18, 588))
 createTp("Black Market", Vector3.new(-94, 14, 165))
 createTp("Border Roof", Vector3.new(-175, 56, 269))
