@@ -40,6 +40,7 @@ local sg = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 sg.Name = "CrateMaster_V34_Clean"
 sg.ResetOnSpawn = false
 sg.DisplayOrder = 999999
+
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
@@ -646,7 +647,7 @@ runService.Stepped:Connect(function()
                 crossV.From = Vector2.new(center.X, adjustedY - 24)
                 crossV.To = Vector2.new(center.X, adjustedY + 24)
                 crossH.From = Vector2.new(center.X - 24, adjustedY)
-                crossH.To = Vector2.new(center.X + 24, adjustedY)
+                crossH.To = Vector2.new(center.X + 24)
                 crossV.Visible = true
                 crossH.Visible = true
             else
