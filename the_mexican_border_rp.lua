@@ -647,7 +647,7 @@ runService.Stepped:Connect(function()
                 crossV.From = Vector2.new(center.X, adjustedY - 24)
                 crossV.To = Vector2.new(center.X, adjustedY + 24)
                 crossH.From = Vector2.new(center.X - 24, adjustedY)
-                crossH.To = Vector2.new(center.X + 24)
+                crossH.To = Vector2.new(center.X + 24, adjustedY)  -- FIXED: added adjustedY
                 crossV.Visible = true
                 crossH.Visible = true
             else
