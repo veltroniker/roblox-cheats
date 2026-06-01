@@ -39,8 +39,7 @@ local focusPart = nil
 local sg = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 sg.Name = "CrateMaster_V34_Clean"
 sg.ResetOnSpawn = false
-sg.DisplayOrder = 999999 -- FIX: Ensures the GUI stays layered on top of all other game UIs
-
+sg.DisplayOrder = 999999
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
