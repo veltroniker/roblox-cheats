@@ -2,7 +2,6 @@ local player = game:GetService("Players").LocalPlayer
 local runService = game:GetService("RunService")
 local userInputService = game:GetService("UserInputService")
 local players = game:GetService("Players")
-local backpack = player:WaitForChild("Backpack")
 local camera = workspace.CurrentCamera
 
 local REGULAR_BUY = Vector3.new(-47, 14, -74)
@@ -40,6 +39,7 @@ local focusPart = nil
 local sg = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 sg.Name = "CrateMaster_V34_Clean"
 sg.ResetOnSpawn = false
+sg.DisplayOrder = 999999 -- FIX: Ensures the GUI stays layered on top of all other game UIs
 
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
@@ -480,6 +480,7 @@ freecamBtn.MouseButton1Click:Connect(function()
         userInputService.MouseBehavior = Enum.MouseBehavior.Default
         player.ReplicationFocus = nil
         if focusPart then focusPart:Destroy() focusPart = nil end
+        cameraX = 0; cameraY = 0
         if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
             local hum = player.Character:FindFirstChildOfClass("Humanoid")
             camera.CameraSubject = hum
@@ -529,6 +530,7 @@ removeBtn.MouseButton1Click:Connect(function()
     boxActive = false; nameActive = false; tracerActive = false; skeletonActive = false; crosshairActive = false; freecamActive = false
     camera.CameraType = originalCameraType; userInputService.MouseBehavior = Enum.MouseBehavior.Default
     player.CameraMaxZoomDistance = 400; player.ReplicationFocus = nil
+    cameraX = 0; cameraY = 0
     d1:Destroy(); d2:Destroy(); d3:Destroy(); d4:Destroy(); centerDot:Destroy(); crossV:Destroy(); crossH:Destroy()
     if focusPart then focusPart:Destroy() focusPart = nil end
     if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
@@ -717,19 +719,28 @@ task.spawn(function()
     while scriptRunning do
         task.wait(0.08)
         if (farmActive or illegalActive) and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local root = player.Character.HumanoidRootPart
-            local buyPos = farmActive and REGULAR_BUY or ILLEGAL_BUY
-            local sellPos = farmActive and REGULAR_SELL or ILLEGAL_SELL
-            local crateName = farmActive and REGULAR_NAME or ILLEGAL_NAME
+            local currentCharacter = player.Character
+            local currentBackpack = player:FindFirstChild("Backpack")
+            local root = currentCharacter:FindFirstChild("HumanoidRootPart")
+            local hum = currentCharacter:FindFirstChildOfClass("Humanoid")
             
-            if crateName then
-                local crateInBackpack = backpack:FindFirstChild(crateName)
-                if not crateInBackpack and not player.Character:FindFirstChild(crateName) then
+            if root and hum then
+                local buyPos = farmActive and REGULAR_BUY or ILLEGAL_BUY
+                local sellPos = farmActive and REGULAR_SELL or ILLEGAL_SELL
+                local crateName = farmActive and REGULAR_NAME or ILLEGAL_NAME
+                
+                local crateInBackpack = currentBackpack and currentBackpack:FindFirstChild(crateName)
+                local crateInCharacter = currentCharacter:FindFirstChild(crateName)
+                
+                if not crateInBackpack and not crateInCharacter then
                     root.CFrame = CFrame.new(buyPos + Vector3.new(0, 2, 0))
                     task.wait(0.15)
                     fireClosestPrompt(buyPos)
                 else
-                    if crateInBackpack then player.Character:FindFirstChildOfClass("Humanoid"):EquipTool(crateInBackpack) end
+                    if crateInBackpack then 
+                        hum:EquipTool(crateInBackpack) 
+                        task.wait(0.05)
+                    end
                     root.CFrame = CFrame.new(sellPos + Vector3.new(0, 2, 0))
                     task.wait(0.15)
                     fireClosestPrompt(sellPos)
