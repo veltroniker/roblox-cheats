@@ -602,7 +602,7 @@ runService.Stepped:Connect(function()
         
         if crosshairActive and holdingWeapon then
             local center = camera.ViewportSize / 2
-            local adjustedY = center.Y - 55
+            local adjustedY = center.Y - 58
             
             local hittingPlayer = false
             local unitRay = camera:ViewportPointToRay(center.X, adjustedY)
