@@ -601,11 +601,12 @@ runService.Stepped:Connect(function()
         local holdingWeapon = player.Character:FindFirstChildOfClass("Tool")
         
         if crosshairActive and holdingWeapon then
-            local center = camera.ViewportSize / 2
-            local adjustedY = center.Y - 58
+            local mousePos = userInputService:GetMouseLocation()
+            local crosshairX = mousePos.X
+            local adjustedY = mousePos.Y - 58
             
             local hittingPlayer = false
-            local unitRay = camera:ViewportPointToRay(center.X, adjustedY)
+            local unitRay = camera:ViewportPointToRay(crosshairX, adjustedY)
             local raycastParams = RaycastParams.new()
             raycastParams.FilterType = Enum.RaycastFilterType.Exclude
             raycastParams.FilterDescendantsInstances = {player.Character}
@@ -621,19 +622,19 @@ runService.Stepped:Connect(function()
             local innerGap = 13
             local lineLength = 11
             
-            d1.From = Vector2.new(center.X - innerGap - lineLength, adjustedY - innerGap - lineLength)
-            d1.To = Vector2.new(center.X - innerGap, adjustedY - innerGap)
+            d1.From = Vector2.new(crosshairX - innerGap - lineLength, adjustedY - innerGap - lineLength)
+            d1.To = Vector2.new(crosshairX - innerGap, adjustedY - innerGap)
             
-            d2.From = Vector2.new(center.X + innerGap, adjustedY - innerGap)
-            d2.To = Vector2.new(center.X + innerGap + lineLength, adjustedY - innerGap - lineLength)
+            d2.From = Vector2.new(crosshairX + innerGap, adjustedY - innerGap)
+            d2.To = Vector2.new(crosshairX + innerGap + lineLength, adjustedY - innerGap - lineLength)
             
-            d3.From = Vector2.new(center.X - innerGap - lineLength, adjustedY + innerGap + lineLength)
-            d3.To = Vector2.new(center.X - innerGap, adjustedY + innerGap)
+            d3.From = Vector2.new(crosshairX - innerGap - lineLength, adjustedY + innerGap + lineLength)
+            d3.To = Vector2.new(crosshairX - innerGap, adjustedY + innerGap)
             
-            d4.From = Vector2.new(center.X + innerGap, adjustedY + innerGap)
-            d4.To = Vector2.new(center.X + innerGap + lineLength, adjustedY + innerGap + lineLength)
+            d4.From = Vector2.new(crosshairX + innerGap, adjustedY + innerGap)
+            d4.To = Vector2.new(crosshairX + innerGap + lineLength, adjustedY + innerGap + lineLength)
             
-            centerDot.Position = Vector2.new(center.X, adjustedY)
+            centerDot.Position = Vector2.new(crosshairX, adjustedY)
             
             d1.Visible = true
             d2.Visible = true
@@ -644,10 +645,10 @@ runService.Stepped:Connect(function()
             if hittingPlayer then
                 crossV.Thickness = 5.5
                 crossH.Thickness = 5.5
-                crossV.From = Vector2.new(center.X, adjustedY - 24)
-                crossV.To = Vector2.new(center.X, adjustedY + 24)
-                crossH.From = Vector2.new(center.X - 24, adjustedY)
-                crossH.To = Vector2.new(center.X + 24, adjustedY)  -- FIXED: added adjustedY
+                crossV.From = Vector2.new(crosshairX, adjustedY - 24)
+                crossV.To = Vector2.new(crosshairX, adjustedY + 24)
+                crossH.From = Vector2.new(crosshairX - 24, adjustedY)
+                crossH.To = Vector2.new(crosshairX + 24, adjustedY)
                 crossV.Visible = true
                 crossH.Visible = true
             else
