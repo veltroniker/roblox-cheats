@@ -2,6 +2,7 @@ local player = game:GetService("Players").LocalPlayer
 local runService = game:GetService("RunService")
 local userInputService = game:GetService("UserInputService")
 local players = game:GetService("Players")
+local lighting = game:GetService("Lighting")
 local camera = workspace.CurrentCamera
 
 local REGULAR_BUY = Vector3.new(-47, 14, -74)
@@ -18,6 +19,8 @@ local noclip = false
 local scriptRunning = true
 local customWalkSpeed = 16
 local customJumpPower = 50
+local antiAfkActive = false
+local flyActive = false
 
 local boxActive = false
 local nameActive = false
@@ -26,15 +29,31 @@ local skeletonActive = false
 local crosshairActive = false
 local maxZoomActive = false
 local freecamActive = false
+local noFogActive = false
 
 local freecamCFrame = CFrame.new()
-local freecamSpeed = 1
+local freecamSpeed = 4 
 local originalCameraType = camera.CameraType
 local originalMouseBehavior = userInputService.MouseBehavior
 
 local cameraX = 0
 local cameraY = 0
 local focusPart = nil 
+
+local virtualUser = game:GetService("VirtualUser")
+local afkConnection
+
+afkConnection = player.Idled:Connect(function()
+    if scriptRunning then
+        if antiAfkActive then
+            virtualUser:Button2Down(Vector2.new(0, 0), camera.CFrame)
+            task.wait(1)
+            virtualUser:Button2Up(Vector2.new(0, 0), camera.CFrame)
+        end
+    else
+        if afkConnection then afkConnection:Disconnect() end
+    end
+end)
 
 local sg = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 sg.Name = "CrateMaster_V34_Clean"
@@ -67,8 +86,8 @@ makeDraggable(main)
 Instance.new("UICorner", main)
 
 local moveMenu = Instance.new("Frame", sg)
-moveMenu.Size = UDim2.new(0, 180, 0, 230)
-moveMenu.Position = UDim2.new(0, 220, 1, -240)
+moveMenu.Size = UDim2.new(0, 180, 0, 265)
+moveMenu.Position = UDim2.new(0, 220, 1, -275)
 moveMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 moveMenu.BackgroundTransparency = 0.4
 moveMenu.Visible = false
@@ -85,8 +104,8 @@ makeDraggable(tpFrame)
 Instance.new("UICorner", tpFrame)
 
 local espMenu = Instance.new("Frame", sg)
-espMenu.Size = UDim2.new(0, 180, 0, 320)
-espMenu.Position = UDim2.new(0, 610, 1, -330)
+espMenu.Size = UDim2.new(0, 180, 0, 330)
+espMenu.Position = UDim2.new(0, 610, 1, -340)
 espMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 espMenu.BackgroundTransparency = 0.4
 espMenu.Visible = false
@@ -391,6 +410,7 @@ local toggleSkeletonBtn = createBtn("SKELETON ESP: OFF", UDim2.new(0, 10, 0, 130
 local toggleCrossBtn = createBtn("CROSSHAIR: OFF", UDim2.new(0, 10, 0, 170), espMenu)
 local maxZoomBtn = createBtn("MAX ZOOM: OFF", UDim2.new(0, 10, 0, 210), espMenu, Color3.fromRGB(80, 40, 120))
 local freecamBtn = createBtn("FREE CAM: OFF", UDim2.new(0, 10, 0, 250), espMenu, Color3.fromRGB(40, 80, 120))
+local toggleFogBtn = createBtn("NO FOG: OFF", UDim2.new(0, 10, 0, 290), espMenu, Color3.fromRGB(120, 60, 0))
 
 local noclipBtn = createBtn("NOCLIP: OFF", UDim2.new(0, 10, 0, 10), moveMenu)
 
@@ -415,6 +435,9 @@ jumpBox.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", jumpBox)
 
 local applyJumpBtn = createBtn("SET JUMP HEIGHT", UDim2.new(0, 10, 0, 160), moveMenu, Color3.fromRGB(150, 100, 0))
+
+local flyBtn = createBtn("FLY: OFF", UDim2.new(0, 10, 0, 195), moveMenu, Color3.fromRGB(120, 40, 40))
+local antiAfkBtn = createBtn("ANTI-AFK: OFF", UDim2.new(0, 10, 0, 230), moveMenu, Color3.fromRGB(120, 40, 40))
 
 toggleBoxBtn.MouseButton1Click:Connect(function()
     boxActive = not boxActive
@@ -459,6 +482,9 @@ freecamBtn.MouseButton1Click:Connect(function()
     freecamBtn.TextColor3 = freecamActive and Color3.new(0,1,0) or Color3.new(1,1,1)
     
     if freecamActive then
+        flyActive = false
+        flyBtn.Text = "FLY: OFF"
+        flyBtn.BackgroundColor3 = Color3.fromRGB(120, 40, 40)
         originalCameraType = camera.CameraType
         originalMouseBehavior = userInputService.MouseBehavior
         freecamCFrame = camera.CFrame
@@ -489,6 +515,12 @@ freecamBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+toggleFogBtn.MouseButton1Click:Connect(function()
+    noFogActive = not noFogActive
+    toggleFogBtn.Text = noFogActive and "NO FOG: ON" or "NO FOG: OFF"
+    toggleFogBtn.TextColor3 = noFogActive and Color3.new(0,1,0) or Color3.new(1,1,1)
+end)
+
 local function updateButtonVisuals()
     farmBtn.Text = farmActive and "AUTOFARM: ACTIVE [F1]" or "AUTOFARM: OFF [F1]"
     farmBtn.BackgroundColor3 = farmActive and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(120, 40, 40)
@@ -517,6 +549,29 @@ applyJumpBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+antiAfkBtn.MouseButton1Click:Connect(function()
+    antiAfkActive = not antiAfkActive
+    antiAfkBtn.Text = antiAfkActive and "ANTI-AFK: ACTIVE" or "ANTI-AFK: OFF"
+    antiAfkBtn.BackgroundColor3 = antiAfkActive and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(120, 40, 40)
+end)
+
+flyBtn.MouseButton1Click:Connect(function()
+    flyActive = not flyActive
+    flyBtn.Text = flyActive and "FLY: ACTIVE" or "FLY: OFF"
+    flyBtn.BackgroundColor3 = flyActive and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(120, 40, 40)
+    if flyActive then
+        freecamActive = false
+        freecamBtn.Text = "FREE CAM: OFF"
+        freecamBtn.TextColor3 = Color3.new(1,1,1)
+    else
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local root = player.Character.HumanoidRootPart
+            root.Velocity = Vector3.new(0,0,0)
+            root.RotVelocity = Vector3.new(0,0,0)
+        end
+    end
+end)
+
 farmBtn.MouseButton1Click:Connect(toggleFarm)
 illegalBtn.MouseButton1Click:Connect(toggleIllegal)
 noclipBtn.MouseButton1Click:Connect(toggleNoclip)
@@ -526,8 +581,8 @@ toggleTpBtn.MouseButton1Click:Connect(function() tpFrame.Visible = not tpFrame.V
 toggleEspMenuBtn.MouseButton1Click:Connect(function() espMenu.Visible = not espMenu.Visible end)
 
 removeBtn.MouseButton1Click:Connect(function()
-    scriptRunning = false; farmActive = false; illegalActive = false; noclip = false
-    boxActive = false; nameActive = false; tracerActive = false; skeletonActive = false; crosshairActive = false; freecamActive = false
+    scriptRunning = false; farmActive = false; illegalActive = false; noclip = false; antiAfkActive = false; flyActive = false
+    boxActive = false; nameActive = false; tracerActive = false; skeletonActive = false; crosshairActive = false; freecamActive = false; noFogActive = false
     camera.CameraType = originalCameraType; userInputService.MouseBehavior = Enum.MouseBehavior.Default
     player.CameraMaxZoomDistance = 400; player.ReplicationFocus = nil
     cameraX = 0; cameraY = 0
@@ -537,6 +592,7 @@ removeBtn.MouseButton1Click:Connect(function()
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
         hum.WalkSpeed = 16; hum.JumpPower = 50; camera.CameraSubject = hum
     end
+    if afkConnection then afkConnection:Disconnect() end
     sg:Destroy()
 end)
 
@@ -596,17 +652,27 @@ tpScroll.CanvasSize = UDim2.new(0, 0, 0, tpListLayout.AbsoluteContentSize.Y + 10
 tpListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() tpScroll.CanvasSize = UDim2.new(0, 0, 0, tpListLayout.AbsoluteContentSize.Y + 10) end)
 
 runService.Stepped:Connect(function()
+    if scriptRunning and noFogActive then
+        pcall(function()
+            lighting.FogStart = 999999
+            lighting.FogEnd = 999999
+            local atmosphere = lighting:FindFirstChildOfClass("Atmosphere")
+            if atmosphere then
+                atmosphere:Destroy()
+            end
+        end)
+    end
     if scriptRunning and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
+        local root = player.Character:FindFirstChild("HumanoidRootPart")
         local holdingWeapon = player.Character:FindFirstChildOfClass("Tool")
         
         if crosshairActive and holdingWeapon then
-            local mousePos = userInputService:GetMouseLocation()
-            local crosshairX = mousePos.X
-            local adjustedY = mousePos.Y - 58
+            local center = camera.ViewportSize / 2
+            local adjustedY = center.Y - 58
             
             local hittingPlayer = false
-            local unitRay = camera:ViewportPointToRay(crosshairX, adjustedY)
+            local unitRay = camera:ViewportPointToRay(center.X, adjustedY)
             local raycastParams = RaycastParams.new()
             raycastParams.FilterType = Enum.RaycastFilterType.Exclude
             raycastParams.FilterDescendantsInstances = {player.Character}
@@ -622,19 +688,19 @@ runService.Stepped:Connect(function()
             local innerGap = 13
             local lineLength = 11
             
-            d1.From = Vector2.new(crosshairX - innerGap - lineLength, adjustedY - innerGap - lineLength)
-            d1.To = Vector2.new(crosshairX - innerGap, adjustedY - innerGap)
+            d1.From = Vector2.new(center.X - innerGap - lineLength, adjustedY - innerGap - lineLength)
+            d1.To = Vector2.new(center.X - innerGap, adjustedY - innerGap)
             
-            d2.From = Vector2.new(crosshairX + innerGap, adjustedY - innerGap)
-            d2.To = Vector2.new(crosshairX + innerGap + lineLength, adjustedY - innerGap - lineLength)
+            d2.From = Vector2.new(center.X + innerGap, adjustedY - innerGap)
+            d2.To = Vector2.new(center.X + innerGap + lineLength, adjustedY - innerGap - lineLength)
             
-            d3.From = Vector2.new(crosshairX - innerGap - lineLength, adjustedY + innerGap + lineLength)
-            d3.To = Vector2.new(crosshairX - innerGap, adjustedY + innerGap)
+            d3.From = Vector2.new(center.X - innerGap - lineLength, adjustedY + innerGap + lineLength)
+            d3.To = Vector2.new(center.X - innerGap, adjustedY + innerGap)
             
-            d4.From = Vector2.new(crosshairX + innerGap, adjustedY + innerGap)
-            d4.To = Vector2.new(crosshairX + innerGap + lineLength, adjustedY + innerGap + lineLength)
+            d4.From = Vector2.new(center.X + innerGap, adjustedY + innerGap)
+            d4.To = Vector2.new(center.X + innerGap + lineLength, adjustedY + innerGap + lineLength)
             
-            centerDot.Position = Vector2.new(crosshairX, adjustedY)
+            centerDot.Position = Vector2.new(center.X, adjustedY)
             
             d1.Visible = true
             d2.Visible = true
@@ -644,11 +710,11 @@ runService.Stepped:Connect(function()
             
             if hittingPlayer then
                 crossV.Thickness = 5.5
+                crossV.From = Vector2.new(center.X, adjustedY - 24)
+                crossV.To = Vector2.new(center.X, adjustedY + 24)
                 crossH.Thickness = 5.5
-                crossV.From = Vector2.new(crosshairX, adjustedY - 24)
-                crossV.To = Vector2.new(crosshairX, adjustedY + 24)
-                crossH.From = Vector2.new(crosshairX - 24, adjustedY)
-                crossH.To = Vector2.new(crosshairX + 24, adjustedY)
+                crossH.From = Vector2.new(center.X - 24, adjustedY)
+                crossH.To = Vector2.new(center.X + 24, adjustedY)
                 crossV.Visible = true
                 crossH.Visible = true
             else
@@ -690,12 +756,33 @@ runService.Stepped:Connect(function()
             freecamCFrame = camera.CFrame
             if focusPart then focusPart.CFrame = freecamCFrame end
         else
-            if noclip then
-                for _, v in pairs(player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
-            end
-            if hum then
-                if hum.WalkSpeed ~= customWalkSpeed then hum.WalkSpeed = customWalkSpeed end
-                if hum.JumpPower ~= customJumpPower then hum.UseJumpPower = true; hum.JumpPower = customJumpPower end
+            if flyActive and root then
+                local flySpeed = (customWalkSpeed / 16) * 1.5
+                local look = camera.CFrame.LookVector
+                local right = camera.CFrame.RightVector
+                local vel = Vector3.new(0,0,0)
+                
+                if userInputService:IsKeyDown(Enum.KeyCode.W) then vel = vel + look end
+                if userInputService:IsKeyDown(Enum.KeyCode.S) then vel = vel - look end
+                if userInputService:IsKeyDown(Enum.KeyCode.A) then vel = vel - right end
+                if userInputService:IsKeyDown(Enum.KeyCode.D) then vel = vel + right end
+                if userInputService:IsKeyDown(Enum.KeyCode.Space) then vel = vel + Vector3.new(0, 1, 0) end
+                if userInputService:IsKeyDown(Enum.KeyCode.LeftShift) then vel = vel - Vector3.new(0, 1, 0) end
+                
+                if vel.Magnitude > 0 then
+                    root.Velocity = vel.Unit * (flySpeed * 30)
+                else
+                    root.Velocity = Vector3.new(0, 0, 0)
+                end
+                root.RotVelocity = Vector3.new(0, 0, 0)
+            else
+                if noclip then
+                    for _, v in pairs(player.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
+                end
+                if hum then
+                    if hum.WalkSpeed ~= customWalkSpeed then hum.WalkSpeed = customWalkSpeed end
+                    if hum.JumpPower ~= customJumpPower then hum.UseJumpPower = true; hum.JumpPower = customJumpPower end
+                end
             end
         end
     end
