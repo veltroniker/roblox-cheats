@@ -64,6 +64,7 @@ sg.DisplayOrder = 999999
 local drawOverlay = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 drawOverlay.Name = "CrateMaster_DrawOverlay"
 drawOverlay.ResetOnSpawn = false
+drawOverlay.IgnoreGuiInset = true -- FIXES OFFSET BUG FOR DRAWINGS
 drawOverlay.DisplayOrder = 999998
 
 local function makeDraggable(frame)
@@ -299,7 +300,7 @@ local function createESP(plr)
         end
 
         local char = plr.Character
-        if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") then
+        if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") and char.Humanoid.Health > 0 then
             local hum = char.Humanoid
             local root = char.HumanoidRootPart
             local dynamicColor = getESPColor(plr)
@@ -340,10 +341,10 @@ local function createESP(plr)
             if skeletonActive then
                 local head = char:FindFirstChild("Head")
                 local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
-                local leftArm = char:FindFirstChild("Left Arm") or char:FindFirstChild("LeftHand")
-                local rightArm = char:FindFirstChild("Right Arm") or char:FindFirstChild("RightHand")
-                local leftLeg = char:FindFirstChild("Left Leg") or char:FindFirstChild("LeftFoot")
-                local rightLeg = char:FindFirstChild("Right Leg") or char:FindFirstChild("RightFoot")
+                local leftArm = char:FindFirstChild("Left Arm") or char:FindFirstChild("LeftHand") or char:FindFirstChild("LeftUpperArm")
+                local rightArm = char:FindFirstChild("Right Arm") or char:FindFirstChild("RightHand") or char:FindFirstChild("RightUpperArm")
+                local leftLeg = char:FindFirstChild("Left Leg") or char:FindFirstChild("LeftFoot") or char:FindFirstChild("LeftUpperLeg")
+                local rightLeg = char:FindFirstChild("Right Leg") or char:FindFirstChild("RightFoot") or char:FindFirstChild("RightUpperLeg")
 
                 if head and torso and leftArm and rightArm and leftLeg and rightLeg then
                     local headP, headO = camera:WorldToViewportPoint(head.Position)
@@ -353,7 +354,7 @@ local function createESP(plr)
                     local leftLegP, leftLegO = camera:WorldToViewportPoint(leftLeg.Position)
                     local rightLegP, rightLegO = camera:WorldToViewportPoint(rightLeg.Position)
 
-                    if torsoO then
+                    if headO and torsoO and leftArmO and rightArmO and leftLegO and rightLegO then
                         for _, line in pairs(skeletonLines) do line.BackgroundColor3 = dynamicColor; line.Visible = true end
                         setGuiLine(skeletonLines[1], Vector2.new(headP.X, headP.Y), Vector2.new(torsoP.X, torsoP.Y))
                         setGuiLine(skeletonLines[2], Vector2.new(torsoP.X, torsoP.Y), Vector2.new(leftArmP.X, leftArmP.Y))
