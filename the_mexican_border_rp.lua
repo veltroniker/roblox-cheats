@@ -3,6 +3,7 @@ local runService = game:GetService("RunService")
 local userInputService = game:GetService("UserInputService")
 local players = game:GetService("Players")
 local lighting = game:GetService("Lighting")
+local textChatService = game:GetService("TextChatService")
 local camera = workspace.CurrentCamera
 
 local REGULAR_BUY = Vector3.new(-47, 14, -74)
@@ -30,6 +31,7 @@ local crosshairActive = false
 local maxZoomActive = false
 local freecamActive = false
 local noFogActive = false
+local chatLogActive = true
 
 local freecamCFrame = CFrame.new()
 local freecamSpeed = 4 
@@ -104,8 +106,8 @@ makeDraggable(tpFrame)
 Instance.new("UICorner", tpFrame)
 
 local espMenu = Instance.new("Frame", sg)
-espMenu.Size = UDim2.new(0, 180, 0, 330)
-espMenu.Position = UDim2.new(0, 610, 1, -340)
+espMenu.Size = UDim2.new(0, 220, 0, 500)
+espMenu.Position = UDim2.new(0, 610, 1, -510)
 espMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 espMenu.BackgroundTransparency = 0.4
 espMenu.Visible = false
@@ -411,6 +413,96 @@ local toggleCrossBtn = createBtn("CROSSHAIR: OFF", UDim2.new(0, 10, 0, 170), esp
 local maxZoomBtn = createBtn("MAX ZOOM: OFF", UDim2.new(0, 10, 0, 210), espMenu, Color3.fromRGB(80, 40, 120))
 local freecamBtn = createBtn("FREE CAM: OFF", UDim2.new(0, 10, 0, 250), espMenu, Color3.fromRGB(40, 80, 120))
 local toggleFogBtn = createBtn("NO FOG: OFF", UDim2.new(0, 10, 0, 290), espMenu, Color3.fromRGB(120, 60, 0))
+local chatLogToggleBtn = createBtn("CHAT LOG: ON", UDim2.new(0, 10, 0, 330), espMenu, Color3.fromRGB(0, 100, 150))
+chatLogToggleBtn.TextColor3 = Color3.new(0, 1, 0)
+
+local chatContainer = Instance.new("Frame", espMenu)
+chatContainer.Size = UDim2.new(1, -20, 0, 120)
+chatContainer.Position = UDim2.new(0, 10, 0, 370)
+chatContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+chatContainer.BackgroundTransparency = 0.3
+Instance.new("UICorner", chatContainer)
+
+local chatScroll = Instance.new("ScrollingFrame", chatContainer)
+chatScroll.Size = UDim2.new(1, -10, 1, -10)
+chatScroll.Position = UDim2.new(0, 5, 0, 5)
+chatScroll.BackgroundTransparency = 1
+chatScroll.BorderSizePixel = 0
+chatScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+chatScroll.ScrollBarThickness = 4
+
+local chatListLayout = Instance.new("UIListLayout", chatScroll)
+chatListLayout.Padding = UDim.new(0, 3)
+chatListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local function appendToChatLog(sender, message)
+    if not scriptRunning or not chatLogActive then return end
+    
+    local logLabel = Instance.new("TextLabel")
+    logLabel.Size = UDim2.new(1, -5, 0, 0)
+    logLabel.AutomaticSize = Enum.AutomaticSize.Y
+    logLabel.BackgroundTransparency = 1
+    logLabel.Font = Enum.Font.SourceSansBold
+    logLabel.TextSize = 13
+    logLabel.TextXAlignment = Enum.TextXAlignment.Left
+    logLabel.TextYAlignment = Enum.TextYAlignment.Top
+    logLabel.TextWrapped = true
+    
+    local pObj = players:FindFirstChild(sender)
+    local colHex = "FFFFFF"
+    if pObj then
+        local c = getESPColor(pObj)
+        colHex = string.format("%02X%02X%02X", math.floor(c.R*255), math.floor(c.G*255), math.floor(c.B*255))
+    end
+    
+    logLabel.Text = string.format('<font color="#%s">[%s]</font>: <font color="#FFFFFF">%s</font>', colHex, sender, message)
+    logLabel.RichText = true
+    logLabel.Parent = chatScroll
+    
+    task.wait(0.01)
+    chatScroll.CanvasSize = UDim2.new(0, 0, 0, chatListLayout.AbsoluteContentSize.Y + 10)
+    chatScroll.CanvasPosition = Vector2.new(0, chatScroll.CanvasSize.Y.Offset)
+end
+
+-- TRACKED CHAT CONNECTIONS (Fixes double logging cleanly)
+local chatConnections = {}
+
+local function disconnectChat()
+    for _, conn in pairs(chatConnections) do
+        if conn then conn:Disconnect() end
+    end
+    chatConnections = {}
+end
+
+if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+    local conn = textChatService.MessageReceived:Connect(function(message)
+        if message.TextSource and scriptRunning then
+            task.spawn(function()
+                appendToChatLog(message.TextSource.Name, message.Text)
+            end)
+        end
+    end)
+    table.insert(chatConnections, conn)
+else
+    local function hookPlayer(p)
+        if chatConnections[p] then return end
+        chatConnections[p] = p.Chatted:Connect(function(msg)
+            if scriptRunning then appendToChatLog(p.Name, msg) end
+        end)
+    end
+    
+    for _, p in pairs(players:GetPlayers()) do hookPlayer(p) end
+    local conn = players.PlayerAdded:Connect(hookPlayer)
+    table.insert(chatConnections, conn)
+    
+    local dconn = players.PlayerRemoving:Connect(function(p)
+        if chatConnections[p] then
+            chatConnections[p]:Disconnect()
+            chatConnections[p] = nil
+        end
+    end)
+    table.insert(chatConnections, dconn)
+end
 
 local noclipBtn = createBtn("NOCLIP: OFF", UDim2.new(0, 10, 0, 10), moveMenu)
 
@@ -521,6 +613,13 @@ toggleFogBtn.MouseButton1Click:Connect(function()
     toggleFogBtn.TextColor3 = noFogActive and Color3.new(0,1,0) or Color3.new(1,1,1)
 end)
 
+chatLogToggleBtn.MouseButton1Click:Connect(function()
+    chatLogActive = not chatLogActive
+    chatContainer.Visible = chatLogActive
+    chatLogToggleBtn.Text = chatLogActive and "CHAT LOG: ON" or "CHAT LOG: OFF"
+    chatLogToggleBtn.TextColor3 = chatLogActive and Color3.new(0,1,0) or Color3.new(1,1,1)
+end)
+
 local function updateButtonVisuals()
     farmBtn.Text = farmActive and "AUTOFARM: ACTIVE [F1]" or "AUTOFARM: OFF [F1]"
     farmBtn.BackgroundColor3 = farmActive and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(120, 40, 40)
@@ -593,6 +692,7 @@ removeBtn.MouseButton1Click:Connect(function()
         hum.WalkSpeed = 16; hum.JumpPower = 50; camera.CameraSubject = hum
     end
     if afkConnection then afkConnection:Disconnect() end
+    disconnectChat()
     sg:Destroy()
 end)
 
@@ -656,9 +756,12 @@ runService.Stepped:Connect(function()
         pcall(function()
             lighting.FogStart = 999999
             lighting.FogEnd = 999999
-            local atmosphere = lighting:FindFirstChildOfClass("Atmosphere")
-            if atmosphere then
-                atmosphere:Destroy()
+            lighting.FogColor = Color3.fromRGB(0, 0, 0)
+            
+            for _, v in pairs(lighting:GetChildren()) do
+                if v:IsA("Atmosphere") or v:IsA("Sky") or v:IsA("Clouds") then
+                    v:Destroy()
+                end
             end
         end)
     end
@@ -668,11 +771,12 @@ runService.Stepped:Connect(function()
         local holdingWeapon = player.Character:FindFirstChildOfClass("Tool")
         
         if crosshairActive and holdingWeapon then
-            local center = camera.ViewportSize / 2
-            local adjustedY = center.Y - 58
+            local mouseLocation = userInputService:GetMouseLocation()
+            local mouseX = mouseLocation.X
+            local mouseY = mouseLocation.Y - 58
             
             local hittingPlayer = false
-            local unitRay = camera:ViewportPointToRay(center.X, adjustedY)
+            local unitRay = camera:ViewportPointToRay(mouseX, mouseY)
             local raycastParams = RaycastParams.new()
             raycastParams.FilterType = Enum.RaycastFilterType.Exclude
             raycastParams.FilterDescendantsInstances = {player.Character}
@@ -688,19 +792,19 @@ runService.Stepped:Connect(function()
             local innerGap = 13
             local lineLength = 11
             
-            d1.From = Vector2.new(center.X - innerGap - lineLength, adjustedY - innerGap - lineLength)
-            d1.To = Vector2.new(center.X - innerGap, adjustedY - innerGap)
+            d1.From = Vector2.new(mouseX - innerGap - lineLength, mouseY - innerGap - lineLength)
+            d1.To = Vector2.new(mouseX - innerGap, mouseY - innerGap)
             
-            d2.From = Vector2.new(center.X + innerGap, adjustedY - innerGap)
-            d2.To = Vector2.new(center.X + innerGap + lineLength, adjustedY - innerGap - lineLength)
+            d2.From = Vector2.new(mouseX + innerGap, mouseY - innerGap)
+            d2.To = Vector2.new(mouseX + innerGap + lineLength, mouseY - innerGap - lineLength)
             
-            d3.From = Vector2.new(center.X - innerGap - lineLength, adjustedY + innerGap + lineLength)
-            d3.To = Vector2.new(center.X - innerGap, adjustedY + innerGap)
+            d3.From = Vector2.new(mouseX - innerGap - lineLength, mouseY + innerGap + lineLength)
+            d3.To = Vector2.new(mouseX - innerGap, mouseY + innerGap)
             
-            d4.From = Vector2.new(center.X + innerGap, adjustedY + innerGap)
-            d4.To = Vector2.new(center.X + innerGap + lineLength, adjustedY + innerGap + lineLength)
+            d4.From = Vector2.new(mouseX + innerGap, mouseY + innerGap)
+            d4.To = Vector2.new(mouseX + innerGap + lineLength, mouseY + innerGap + lineLength)
             
-            centerDot.Position = Vector2.new(center.X, adjustedY)
+            centerDot.Position = Vector2.new(mouseX, mouseY)
             
             d1.Visible = true
             d2.Visible = true
@@ -710,11 +814,11 @@ runService.Stepped:Connect(function()
             
             if hittingPlayer then
                 crossV.Thickness = 5.5
-                crossV.From = Vector2.new(center.X, adjustedY - 24)
-                crossV.To = Vector2.new(center.X, adjustedY + 24)
+                crossV.From = Vector2.new(mouseX, mouseY - 24)
+                crossV.To = Vector2.new(mouseX, mouseY + 24)
                 crossH.Thickness = 5.5
-                crossH.From = Vector2.new(center.X - 24, adjustedY)
-                crossH.To = Vector2.new(center.X + 24, adjustedY)
+                crossH.From = Vector2.new(mouseX - 24, mouseY)
+                crossH.To = Vector2.new(mouseX + 24, mouseY)
                 crossV.Visible = true
                 crossH.Visible = true
             else
