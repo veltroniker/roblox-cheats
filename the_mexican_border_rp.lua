@@ -27,7 +27,6 @@ local boxActive = false
 local nameActive = false
 local tracerActive = false
 local skeletonActive = false
-local crosshairActive = false
 local maxZoomActive = false
 local freecamActive = false
 local noFogActive = false
@@ -58,9 +57,14 @@ afkConnection = player.Idled:Connect(function()
 end)
 
 local sg = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-sg.Name = "CrateMaster_V34_Clean"
+sg.Name = "CrateMaster_V40_Clean"
 sg.ResetOnSpawn = false
 sg.DisplayOrder = 999999
+
+local drawOverlay = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+drawOverlay.Name = "CrateMaster_DrawOverlay"
+drawOverlay.ResetOnSpawn = false
+drawOverlay.DisplayOrder = 999998
 
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
@@ -88,8 +92,8 @@ makeDraggable(main)
 Instance.new("UICorner", main)
 
 local moveMenu = Instance.new("Frame", sg)
-moveMenu.Size = UDim2.new(0, 180, 0, 265)
-moveMenu.Position = UDim2.new(0, 220, 1, -275)
+moveMenu.Size = UDim2.new(0, 180, 0, 300)
+moveMenu.Position = UDim2.new(0, 220, 1, -310)
 moveMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 moveMenu.BackgroundTransparency = 0.4
 moveMenu.Visible = false
@@ -106,8 +110,8 @@ makeDraggable(tpFrame)
 Instance.new("UICorner", tpFrame)
 
 local espMenu = Instance.new("Frame", sg)
-espMenu.Size = UDim2.new(0, 220, 0, 500)
-espMenu.Position = UDim2.new(0, 610, 1, -510)
+espMenu.Size = UDim2.new(0, 220, 0, 395)
+espMenu.Position = UDim2.new(0, 610, 1, -405)
 espMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 espMenu.BackgroundTransparency = 0.4
 espMenu.Visible = false
@@ -215,6 +219,13 @@ local function getESPColor(targetPlr)
     else return Color3.fromRGB(255, 0, 0) end
 end
 
+local function setGuiLine(lineFrame, from, to)
+    local distance = (to - from).Magnitude
+    lineFrame.Size = UDim2.new(0, distance, 0, 2)
+    lineFrame.Position = UDim2.new(0, (from.X + to.X) / 2, 0, (from.Y + to.Y) / 2)
+    lineFrame.Rotation = math.deg(math.atan2(to.Y - from.Y, to.X - from.X))
+end
+
 local function createESP(plr)
     local box = Instance.new("BoxHandleAdornment")
     box.Name = "ESPBox"
@@ -260,15 +271,16 @@ local function createESP(plr)
     healthLabel.Font = Enum.Font.SourceSansBold
     healthLabel.TextSize = 11
 
-    local tracerLine = Drawing.new("Line")
-    tracerLine.Thickness = 1.5
-    tracerLine.Transparency = 0.8
+    local tracerLine = Instance.new("Frame", drawOverlay)
+    tracerLine.AnchorPoint = Vector2.new(0.5, 0.5)
+    tracerLine.BorderSizePixel = 0
+    tracerLine.Visible = false
 
     local skeletonLines = {}
     for i = 1, 6 do
-        local line = Drawing.new("Line")
-        line.Thickness = 2
-        line.Transparency = 0.8
+        local line = Instance.new("Frame", drawOverlay)
+        line.AnchorPoint = Vector2.new(0.5, 0.5)
+        line.BorderSizePixel = 0
         line.Visible = false
         table.insert(skeletonLines, line)
     end
@@ -317,9 +329,10 @@ local function createESP(plr)
             if tracerActive then
                 local screenPos, onScreen = camera:WorldToViewportPoint(root.Position)
                 if onScreen then
-                    tracerLine.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
-                    tracerLine.To = Vector2.new(screenPos.X, screenPos.Y)
-                    tracerLine.Color = dynamicColor
+                    local from = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
+                    local to = Vector2.new(screenPos.X, screenPos.Y)
+                    tracerLine.BackgroundColor3 = dynamicColor
+                    setGuiLine(tracerLine, from, to)
                     tracerLine.Visible = true
                 else tracerLine.Visible = false end
             else tracerLine.Visible = false end
@@ -341,13 +354,13 @@ local function createESP(plr)
                     local rightLegP, rightLegO = camera:WorldToViewportPoint(rightLeg.Position)
 
                     if torsoO then
-                        skeletonLines[1].From = Vector2.new(headP.X, headP.Y); skeletonLines[1].To = Vector2.new(torsoP.X, torsoP.Y)
-                        skeletonLines[2].From = Vector2.new(torsoP.X, torsoP.Y); skeletonLines[2].To = Vector2.new(leftArmP.X, leftArmP.Y)
-                        skeletonLines[3].From = Vector2.new(torsoP.X, torsoP.Y); skeletonLines[3].To = Vector2.new(rightArmP.X, rightArmP.Y)
-                        skeletonLines[4].From = Vector2.new(torsoP.X, torsoP.Y); skeletonLines[4].To = Vector2.new(leftLegP.X, leftLegP.Y)
-                        skeletonLines[5].From = Vector2.new(torsoP.X, torsoP.Y); skeletonLines[5].To = Vector2.new(rightLegP.X, rightLegP.Y)
-                        skeletonLines[6].From = Vector2.new(leftArmP.X, leftArmP.Y); skeletonLines[6].To = Vector2.new(rightArmP.X, rightArmP.Y)
-                        for _, line in pairs(skeletonLines) do line.Color = dynamicColor; line.Visible = true end
+                        for _, line in pairs(skeletonLines) do line.BackgroundColor3 = dynamicColor; line.Visible = true end
+                        setGuiLine(skeletonLines[1], Vector2.new(headP.X, headP.Y), Vector2.new(torsoP.X, torsoP.Y))
+                        setGuiLine(skeletonLines[2], Vector2.new(torsoP.X, torsoP.Y), Vector2.new(leftArmP.X, leftArmP.Y))
+                        setGuiLine(skeletonLines[3], Vector2.new(torsoP.X, torsoP.Y), Vector2.new(rightArmP.X, rightArmP.Y))
+                        setGuiLine(skeletonLines[4], Vector2.new(torsoP.X, torsoP.Y), Vector2.new(leftLegP.X, leftLegP.Y))
+                        setGuiLine(skeletonLines[5], Vector2.new(torsoP.X, torsoP.Y), Vector2.new(rightLegP.X, rightLegP.Y))
+                        setGuiLine(skeletonLines[6], Vector2.new(leftArmP.X, leftArmP.Y), Vector2.new(rightArmP.X, rightArmP.Y))
                     else hideSkeleton() end
                 else hideSkeleton() end
             else hideSkeleton() end
@@ -357,42 +370,6 @@ local function createESP(plr)
     end)
     billboard.Parent = sg
 end
-
-local d1 = Drawing.new("Line")
-d1.Thickness = 2
-d1.Transparency = 1
-d1.Color = Color3.fromRGB(255, 0, 0)
-
-local d2 = Drawing.new("Line")
-d2.Thickness = 2
-d2.Transparency = 1
-d2.Color = Color3.fromRGB(255, 0, 0)
-
-local d3 = Drawing.new("Line")
-d3.Thickness = 2
-d3.Transparency = 1
-d3.Color = Color3.fromRGB(255, 0, 0)
-
-local d4 = Drawing.new("Line")
-d4.Thickness = 2
-d4.Transparency = 1
-d4.Color = Color3.fromRGB(255, 0, 0)
-
-local centerDot = Drawing.new("Circle")
-centerDot.Filled = true
-centerDot.Radius = 3.5
-centerDot.Transparency = 1
-centerDot.Color = Color3.fromRGB(255, 0, 0)
-
-local crossV = Drawing.new("Line")
-crossV.Thickness = 2
-crossV.Transparency = 1
-crossV.Color = Color3.fromRGB(255, 0, 0)
-
-local crossH = Drawing.new("Line")
-crossH.Thickness = 2
-crossH.Transparency = 1
-crossH.Color = Color3.fromRGB(255, 0, 0)
 
 for _, p in pairs(players:GetPlayers()) do if p ~= player then createESP(p) end end
 players.PlayerAdded:Connect(function(p) if p ~= player then createESP(p) end end)
@@ -406,19 +383,17 @@ local toggleEspMenuBtn = createBtn("ESP MENU [F5]", UDim2.new(0, 10, 0, 170), ma
 local removeBtn = createBtn("REMOVE SCRIPT", UDim2.new(0, 10, 0, 210), mainFrame, Color3.fromRGB(150, 0, 0))
 
 local toggleBoxBtn = createBtn("BOX ESP: OFF", UDim2.new(0, 10, 0, 10), espMenu)
-local toggleNameBtn = createBtn("NAME ESP: OFF", UDim2.new(0, 10, 0, 50), espMenu)
-local toggleTracerBtn = createBtn("TRACERS: OFF", UDim2.new(0, 10, 0, 90), espMenu)
-local toggleSkeletonBtn = createBtn("SKELETON ESP: OFF", UDim2.new(0, 10, 0, 130), espMenu)
-local toggleCrossBtn = createBtn("CROSSHAIR: OFF", UDim2.new(0, 10, 0, 170), espMenu)
-local maxZoomBtn = createBtn("MAX ZOOM: OFF", UDim2.new(0, 10, 0, 210), espMenu, Color3.fromRGB(80, 40, 120))
-local freecamBtn = createBtn("FREE CAM: OFF", UDim2.new(0, 10, 0, 250), espMenu, Color3.fromRGB(40, 80, 120))
-local toggleFogBtn = createBtn("NO FOG: OFF", UDim2.new(0, 10, 0, 290), espMenu, Color3.fromRGB(120, 60, 0))
-local chatLogToggleBtn = createBtn("CHAT LOG: ON", UDim2.new(0, 10, 0, 330), espMenu, Color3.fromRGB(0, 100, 150))
+local toggleNameBtn = createBtn("NAME ESP: OFF", UDim2.new(0, 10, 0, 45), espMenu)
+local toggleTracerBtn = createBtn("TRACERS: OFF", UDim2.new(0, 10, 0, 80), espMenu)
+local toggleSkeletonBtn = createBtn("SKELETON ESP: OFF", UDim2.new(0, 10, 0, 115), espMenu)
+local maxZoomBtn = createBtn("MAX ZOOM: OFF", UDim2.new(0, 10, 0, 150), espMenu, Color3.fromRGB(80, 40, 120))
+local toggleFogBtn = createBtn("NO FOG: OFF", UDim2.new(0, 10, 0, 185), espMenu, Color3.fromRGB(120, 60, 0))
+local chatLogToggleBtn = createBtn("CHAT LOG: ON", UDim2.new(0, 10, 0, 220), espMenu, Color3.fromRGB(0, 100, 150))
 chatLogToggleBtn.TextColor3 = Color3.new(0, 1, 0)
 
 local chatContainer = Instance.new("Frame", espMenu)
 chatContainer.Size = UDim2.new(1, -20, 0, 120)
-chatContainer.Position = UDim2.new(0, 10, 0, 370)
+chatContainer.Position = UDim2.new(0, 10, 0, 260)
 chatContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 chatContainer.BackgroundTransparency = 0.3
 Instance.new("UICorner", chatContainer)
@@ -435,8 +410,11 @@ local chatListLayout = Instance.new("UIListLayout", chatScroll)
 chatListLayout.Padding = UDim.new(0, 3)
 chatListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local function appendToChatLog(sender, message)
-    if not scriptRunning or not chatLogActive then return end
+local function appendToChatLog(sender, message, isWarning)
+    if not scriptRunning then return end
+    
+    -- When chat log is OFF, completely block normal text messages from printing
+    if not chatLogActive and not isWarning then return end
     
     local logLabel = Instance.new("TextLabel")
     logLabel.Size = UDim2.new(1, -5, 0, 0)
@@ -448,14 +426,18 @@ local function appendToChatLog(sender, message)
     logLabel.TextYAlignment = Enum.TextYAlignment.Top
     logLabel.TextWrapped = true
     
-    local pObj = players:FindFirstChild(sender)
-    local colHex = "FFFFFF"
-    if pObj then
-        local c = getESPColor(pObj)
-        colHex = string.format("%02X%02X%02X", math.floor(c.R*255), math.floor(c.G*255), math.floor(c.B*255))
+    if isWarning then
+        logLabel.Text = string.format('<font color="#FF0000"><b>[COMMAND DETECTED] %s</b></font>', message)
+    else
+        local pObj = players:FindFirstChild(sender)
+        local colHex = "FFFFFF"
+        if pObj then
+            local c = getESPColor(pObj)
+            colHex = string.format("%02X%02X%02X", math.floor(c.R*255), math.floor(c.G*255), math.floor(c.B*255))
+        end
+        logLabel.Text = string.format('<font color="#%s">[%s]</font>: <font color="#FFFFFF">%s</font>', colHex, sender, message)
     end
     
-    logLabel.Text = string.format('<font color="#%s">[%s]</font>: <font color="#FFFFFF">%s</font>', colHex, sender, message)
     logLabel.RichText = true
     logLabel.Parent = chatScroll
     
@@ -464,7 +446,6 @@ local function appendToChatLog(sender, message)
     chatScroll.CanvasPosition = Vector2.new(0, chatScroll.CanvasSize.Y.Offset)
 end
 
--- TRACKED CHAT CONNECTIONS (Fixes double logging cleanly)
 local chatConnections = {}
 
 local function disconnectChat()
@@ -474,11 +455,36 @@ local function disconnectChat()
     chatConnections = {}
 end
 
+local function handleIncomingText(senderName, rawMessage)
+    if not scriptRunning or senderName == "" or rawMessage == "" then return end
+    
+    local isCmd = string.find(rawMessage, ":") ~= nil
+    
+    -- If it's a command, log the warning regardless of toggle state
+    if isCmd then
+        appendToChatLog(senderName, string.format("%s used a command: %s", senderName, rawMessage), true)
+    end
+    
+    -- Only log regular text if the chat log toggle is ON
+    if chatLogActive and not isCmd then
+        appendToChatLog(senderName, rawMessage, false)
+    end
+end
+
 if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
     local conn = textChatService.MessageReceived:Connect(function(message)
-        if message.TextSource and scriptRunning then
+        if scriptRunning and message.TextSource then
             task.spawn(function()
-                appendToChatLog(message.TextSource.Name, message.Text)
+                local unmaskedText = ""
+                pcall(function()
+                    if message.Metadata and message.Metadata ~= "" then
+                        unmaskedText = message.Metadata
+                    elseif message.Text and message.Text ~= "" then
+                        unmaskedText = message.Text
+                    end
+                end)
+                if unmaskedText == "" then return end
+                handleIncomingText(message.TextSource.Name, unmaskedText)
             end)
         end
     end)
@@ -487,14 +493,12 @@ else
     local function hookPlayer(p)
         if chatConnections[p] then return end
         chatConnections[p] = p.Chatted:Connect(function(msg)
-            if scriptRunning then appendToChatLog(p.Name, msg) end
+            if scriptRunning then handleIncomingText(p.Name, msg) end
         end)
     end
-    
     for _, p in pairs(players:GetPlayers()) do hookPlayer(p) end
     local conn = players.PlayerAdded:Connect(hookPlayer)
     table.insert(chatConnections, conn)
-    
     local dconn = players.PlayerRemoving:Connect(function(p)
         if chatConnections[p] then
             chatConnections[p]:Disconnect()
@@ -530,6 +534,7 @@ local applyJumpBtn = createBtn("SET JUMP HEIGHT", UDim2.new(0, 10, 0, 160), move
 
 local flyBtn = createBtn("FLY: OFF", UDim2.new(0, 10, 0, 195), moveMenu, Color3.fromRGB(120, 40, 40))
 local antiAfkBtn = createBtn("ANTI-AFK: OFF", UDim2.new(0, 10, 0, 230), moveMenu, Color3.fromRGB(120, 40, 40))
+local freecamBtn = createBtn("FREE CAM: OFF", UDim2.new(0, 10, 0, 265), moveMenu, Color3.fromRGB(40, 80, 120))
 
 toggleBoxBtn.MouseButton1Click:Connect(function()
     boxActive = not boxActive
@@ -553,12 +558,6 @@ toggleSkeletonBtn.MouseButton1Click:Connect(function()
     skeletonActive = not skeletonActive
     toggleSkeletonBtn.Text = skeletonActive and "SKELETON ESP: ON" or "SKELETON ESP: OFF"
     toggleSkeletonBtn.TextColor3 = skeletonActive and Color3.new(0,1,0) or Color3.new(1,1,1)
-end)
-
-toggleCrossBtn.MouseButton1Click:Connect(function()
-    crosshairActive = not crosshairActive
-    toggleCrossBtn.Text = crosshairActive and "CROSSHAIR: ON" or "CROSSHAIR: OFF"
-    toggleCrossBtn.TextColor3 = crosshairActive and Color3.new(0,1,0) or Color3.new(1,1,1)
 end)
 
 maxZoomBtn.MouseButton1Click:Connect(function()
@@ -615,7 +614,6 @@ end)
 
 chatLogToggleBtn.MouseButton1Click:Connect(function()
     chatLogActive = not chatLogActive
-    chatContainer.Visible = chatLogActive
     chatLogToggleBtn.Text = chatLogActive and "CHAT LOG: ON" or "CHAT LOG: OFF"
     chatLogToggleBtn.TextColor3 = chatLogActive and Color3.new(0,1,0) or Color3.new(1,1,1)
 end)
@@ -681,11 +679,10 @@ toggleEspMenuBtn.MouseButton1Click:Connect(function() espMenu.Visible = not espM
 
 removeBtn.MouseButton1Click:Connect(function()
     scriptRunning = false; farmActive = false; illegalActive = false; noclip = false; antiAfkActive = false; flyActive = false
-    boxActive = false; nameActive = false; tracerActive = false; skeletonActive = false; crosshairActive = false; freecamActive = false; noFogActive = false
+    boxActive = false; nameActive = false; tracerActive = false; skeletonActive = false; freecamActive = false; noFogActive = false
     camera.CameraType = originalCameraType; userInputService.MouseBehavior = Enum.MouseBehavior.Default
     player.CameraMaxZoomDistance = 400; player.ReplicationFocus = nil
     cameraX = 0; cameraY = 0
-    d1:Destroy(); d2:Destroy(); d3:Destroy(); d4:Destroy(); centerDot:Destroy(); crossV:Destroy(); crossH:Destroy()
     if focusPart then focusPart:Destroy() focusPart = nil end
     if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
@@ -694,6 +691,7 @@ removeBtn.MouseButton1Click:Connect(function()
     if afkConnection then afkConnection:Disconnect() end
     disconnectChat()
     sg:Destroy()
+    drawOverlay:Destroy()
 end)
 
 userInputService.InputBegan:Connect(function(i, g)
@@ -757,7 +755,6 @@ runService.Stepped:Connect(function()
             lighting.FogStart = 999999
             lighting.FogEnd = 999999
             lighting.FogColor = Color3.fromRGB(0, 0, 0)
-            
             for _, v in pairs(lighting:GetChildren()) do
                 if v:IsA("Atmosphere") or v:IsA("Sky") or v:IsA("Clouds") then
                     v:Destroy()
@@ -768,73 +765,7 @@ runService.Stepped:Connect(function()
     if scriptRunning and player.Character then
         local hum = player.Character:FindFirstChildOfClass("Humanoid")
         local root = player.Character:FindFirstChild("HumanoidRootPart")
-        local holdingWeapon = player.Character:FindFirstChildOfClass("Tool")
         
-        if crosshairActive and holdingWeapon then
-            local mouseLocation = userInputService:GetMouseLocation()
-            local mouseX = mouseLocation.X
-            local mouseY = mouseLocation.Y - 58
-            
-            local hittingPlayer = false
-            local unitRay = camera:ViewportPointToRay(mouseX, mouseY)
-            local raycastParams = RaycastParams.new()
-            raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-            raycastParams.FilterDescendantsInstances = {player.Character}
-            local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 1000, raycastParams)
-            
-            if raycastResult and raycastResult.Instance then
-                local hitChar = raycastResult.Instance:FindFirstAncestorOfClass("Model")
-                if hitChar and hitChar:FindFirstChildOfClass("Humanoid") and players:GetPlayerFromCharacter(hitChar) then
-                    hittingPlayer = true
-                end
-            end
-            
-            local innerGap = 13
-            local lineLength = 11
-            
-            d1.From = Vector2.new(mouseX - innerGap - lineLength, mouseY - innerGap - lineLength)
-            d1.To = Vector2.new(mouseX - innerGap, mouseY - innerGap)
-            
-            d2.From = Vector2.new(mouseX + innerGap, mouseY - innerGap)
-            d2.To = Vector2.new(mouseX + innerGap + lineLength, mouseY - innerGap - lineLength)
-            
-            d3.From = Vector2.new(mouseX - innerGap - lineLength, mouseY + innerGap + lineLength)
-            d3.To = Vector2.new(mouseX - innerGap, mouseY + innerGap)
-            
-            d4.From = Vector2.new(mouseX + innerGap, mouseY + innerGap)
-            d4.To = Vector2.new(mouseX + innerGap + lineLength, mouseY + innerGap + lineLength)
-            
-            centerDot.Position = Vector2.new(mouseX, mouseY)
-            
-            d1.Visible = true
-            d2.Visible = true
-            d3.Visible = true
-            d4.Visible = true
-            centerDot.Visible = true
-            
-            if hittingPlayer then
-                crossV.Thickness = 5.5
-                crossV.From = Vector2.new(mouseX, mouseY - 24)
-                crossV.To = Vector2.new(mouseX, mouseY + 24)
-                crossH.Thickness = 5.5
-                crossH.From = Vector2.new(mouseX - 24, mouseY)
-                crossH.To = Vector2.new(mouseX + 24, mouseY)
-                crossV.Visible = true
-                crossH.Visible = true
-            else
-                crossV.Visible = false
-                crossH.Visible = false
-            end
-        else
-            d1.Visible = false
-            d2.Visible = false
-            d3.Visible = false
-            d4.Visible = false
-            centerDot.Visible = false
-            crossV.Visible = false
-            crossH.Visible = false
-        end
-
         if freecamActive then
             if hum then hum.WalkSpeed = 0; hum.JumpPower = 0 end
             if userInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
@@ -865,7 +796,6 @@ runService.Stepped:Connect(function()
                 local look = camera.CFrame.LookVector
                 local right = camera.CFrame.RightVector
                 local vel = Vector3.new(0,0,0)
-                
                 if userInputService:IsKeyDown(Enum.KeyCode.W) then vel = vel + look end
                 if userInputService:IsKeyDown(Enum.KeyCode.S) then vel = vel - look end
                 if userInputService:IsKeyDown(Enum.KeyCode.A) then vel = vel - right end
