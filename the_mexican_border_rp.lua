@@ -412,8 +412,6 @@ chatListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 local function appendToChatLog(sender, message, isWarning)
     if not scriptRunning then return end
-    
-    -- When chat log is OFF, completely block normal text messages from printing
     if not chatLogActive and not isWarning then return end
     
     local logLabel = Instance.new("TextLabel")
@@ -460,12 +458,10 @@ local function handleIncomingText(senderName, rawMessage)
     
     local isCmd = string.find(rawMessage, ":") ~= nil
     
-    -- If it's a command, log the warning regardless of toggle state
     if isCmd then
         appendToChatLog(senderName, string.format("%s used a command: %s", senderName, rawMessage), true)
     end
     
-    -- Only log regular text if the chat log toggle is ON
     if chatLogActive and not isCmd then
         appendToChatLog(senderName, rawMessage, false)
     end
