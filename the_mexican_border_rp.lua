@@ -31,6 +31,7 @@ local maxZoomActive = false
 local freecamActive = false
 local noFogActive = false
 local chatLogActive = true
+local crosshairActive = false 
 
 local freecamCFrame = CFrame.new()
 local freecamSpeed = 4 
@@ -64,7 +65,7 @@ sg.DisplayOrder = 999999
 local drawOverlay = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 drawOverlay.Name = "CrateMaster_DrawOverlay"
 drawOverlay.ResetOnSpawn = false
-drawOverlay.IgnoreGuiInset = true -- FIXES OFFSET BUG FOR DRAWINGS
+drawOverlay.IgnoreGuiInset = true
 drawOverlay.DisplayOrder = 999998
 
 local function makeDraggable(frame)
@@ -111,8 +112,8 @@ makeDraggable(tpFrame)
 Instance.new("UICorner", tpFrame)
 
 local espMenu = Instance.new("Frame", sg)
-espMenu.Size = UDim2.new(0, 220, 0, 395)
-espMenu.Position = UDim2.new(0, 610, 1, -405)
+espMenu.Size = UDim2.new(0, 220, 0, 430)
+espMenu.Position = UDim2.new(0, 610, 1, -440)
 espMenu.BackgroundColor3 = Color3.new(0, 0, 0)
 espMenu.BackgroundTransparency = 0.4
 espMenu.Visible = false
@@ -392,9 +393,11 @@ local toggleFogBtn = createBtn("NO FOG: OFF", UDim2.new(0, 10, 0, 185), espMenu,
 local chatLogToggleBtn = createBtn("CHAT LOG: ON", UDim2.new(0, 10, 0, 220), espMenu, Color3.fromRGB(0, 100, 150))
 chatLogToggleBtn.TextColor3 = Color3.new(0, 1, 0)
 
+local crosshairToggleBtn = createBtn("CROSSHAIR: OFF", UDim2.new(0, 10, 0, 255), espMenu, Color3.fromRGB(120, 40, 40))
+
 local chatContainer = Instance.new("Frame", espMenu)
 chatContainer.Size = UDim2.new(1, -20, 0, 120)
-chatContainer.Position = UDim2.new(0, 10, 0, 260)
+chatContainer.Position = UDim2.new(0, 10, 0, 295)
 chatContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 chatContainer.BackgroundTransparency = 0.3
 Instance.new("UICorner", chatContainer)
@@ -410,6 +413,120 @@ chatScroll.ScrollBarThickness = 4
 local chatListLayout = Instance.new("UIListLayout", chatScroll)
 chatListLayout.Padding = UDim.new(0, 3)
 chatListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local crosshairDot = Instance.new("Frame", drawOverlay)
+crosshairDot.Size = UDim2.new(0, 7, 0, 7)
+crosshairDot.AnchorPoint = Vector2.new(0.5, 0.5)
+crosshairDot.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+crosshairDot.BorderSizePixel = 0
+crosshairDot.Visible = false
+Instance.new("UICorner", crosshairDot)
+
+local crosshairLines = {}
+for i = 1, 4 do
+    local line = Instance.new("Frame", drawOverlay)
+    line.BorderSizePixel = 0
+    line.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    line.AnchorPoint = Vector2.new(0.5, 0.5)
+    line.Visible = false
+    table.insert(crosshairLines, line)
+end
+
+local function isHoldingWeapon()
+    local char = player.Character
+    if char then
+        for _, obj in pairs(char:GetChildren()) do
+            if obj:IsA("Tool") then return true end
+        end
+    end
+    return false
+end
+
+local function getPlayerAimedAt(posX, posY)
+    local cameraRay = camera:ViewportPointToRay(posX, posY)
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    if player.Character then raycastParams.FilterDescendantsInstances = {player.Character} end
+    local result = workspace:Raycast(cameraRay.Origin, cameraRay.Direction * 1000, raycastParams)
+    if result and result.Instance then
+        local model = result.Instance:FindFirstAncestorOfClass("Model")
+        if model then
+            local hitPlr = players:GetPlayerFromCharacter(model)
+            if hitPlr then return hitPlr end
+        end
+    end
+    return nil
+end
+
+local function updateCrosshair()
+    if not scriptRunning or not crosshairActive or not isHoldingWeapon() then
+        crosshairDot.Visible = false
+        for _, line in pairs(crosshairLines) do line.Visible = false end
+        return
+    end
+
+    local mousePos = userInputService:GetMouseLocation()
+    local targetX = mousePos.X
+    local targetY = mousePos.Y - 58 
+
+    crosshairDot.Visible = true
+    crosshairDot.Position = UDim2.new(0, targetX, 0, targetY)
+
+    local gap = 12
+    local length = 25
+    local thick = 2
+
+    local targetedPlayer = getPlayerAimedAt(targetX, targetY)
+    local currentCrosshairColor = Color3.fromRGB(255, 0, 0)
+
+    if targetedPlayer then
+        local targetColor = getESPColor(targetedPlayer)
+        if targetColor == Color3.fromRGB(0, 255, 0) then
+            currentCrosshairColor = Color3.fromRGB(0, 255, 0)
+        end
+    end
+
+    crosshairDot.BackgroundColor3 = currentCrosshairColor
+    for _, line in pairs(crosshairLines) do
+        line.BackgroundColor3 = currentCrosshairColor
+    end
+
+    if targetedPlayer then
+        crosshairLines[1].Visible = true
+        setGuiLine(crosshairLines[1], Vector2.new(targetX, targetY - gap - length), Vector2.new(targetX, targetY - gap))
+        crosshairLines[1].Size = UDim2.new(0, crosshairLines[1].Size.X.Offset, 0, thick)
+
+        crosshairLines[2].Visible = true
+        setGuiLine(crosshairLines[2], Vector2.new(targetX, targetY + gap + length), Vector2.new(targetX, targetY + gap))
+        crosshairLines[2].Size = UDim2.new(0, crosshairLines[2].Size.X.Offset, 0, thick)
+
+        crosshairLines[3].Visible = true
+        setGuiLine(crosshairLines[3], Vector2.new(targetX - gap - length, targetY), Vector2.new(targetX - gap, targetY))
+        crosshairLines[3].Size = UDim2.new(0, crosshairLines[3].Size.X.Offset, 0, thick)
+
+        crosshairLines[4].Visible = true
+        setGuiLine(crosshairLines[4], Vector2.new(targetX + gap + length, targetY), Vector2.new(targetX + gap, targetY))
+        crosshairLines[4].Size = UDim2.new(0, crosshairLines[4].Size.X.Offset, 0, thick)
+    else
+        crosshairLines[1].Visible = true
+        setGuiLine(crosshairLines[1], Vector2.new(targetX - gap - length, targetY - gap - length), Vector2.new(targetX - gap, targetY - gap))
+        crosshairLines[1].Size = UDim2.new(0, crosshairLines[1].Size.X.Offset, 0, thick)
+
+        crosshairLines[2].Visible = true
+        setGuiLine(crosshairLines[2], Vector2.new(targetX + gap + length, targetY - gap - length), Vector2.new(targetX + gap, targetY - gap))
+        crosshairLines[2].Size = UDim2.new(0, crosshairLines[2].Size.X.Offset, 0, thick)
+
+        crosshairLines[3].Visible = true
+        setGuiLine(crosshairLines[3], Vector2.new(targetX - gap - length, targetY + gap + length), Vector2.new(targetX - gap, targetY + gap))
+        crosshairLines[3].Size = UDim2.new(0, crosshairLines[3].Size.X.Offset, 0, thick)
+
+        crosshairLines[4].Visible = true
+        setGuiLine(crosshairLines[4], Vector2.new(targetX + gap + length, targetY + gap + length), Vector2.new(targetX + gap, targetY + gap))
+        crosshairLines[4].Size = UDim2.new(0, crosshairLines[4].Size.X.Offset, 0, thick)
+    end
+end
+
+runService.RenderStepped:Connect(updateCrosshair)
 
 local function appendToChatLog(sender, message, isWarning)
     if not scriptRunning then return end
@@ -456,16 +573,9 @@ end
 
 local function handleIncomingText(senderName, rawMessage)
     if not scriptRunning or senderName == "" or rawMessage == "" then return end
-    
     local isCmd = string.find(rawMessage, ":") ~= nil
-    
-    if isCmd then
-        appendToChatLog(senderName, string.format("%s used a command: %s", senderName, rawMessage), true)
-    end
-    
-    if chatLogActive and not isCmd then
-        appendToChatLog(senderName, rawMessage, false)
-    end
+    if isCmd then appendToChatLog(senderName, string.format("%s used a command: %s", senderName, rawMessage), true) end
+    if chatLogActive and not isCmd then appendToChatLog(senderName, rawMessage, false) end
 end
 
 if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
@@ -474,11 +584,8 @@ if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
             task.spawn(function()
                 local unmaskedText = ""
                 pcall(function()
-                    if message.Metadata and message.Metadata ~= "" then
-                        unmaskedText = message.Metadata
-                    elseif message.Text and message.Text ~= "" then
-                        unmaskedText = message.Text
-                    end
+                    if message.Metadata and message.Metadata ~= "" then unmaskedText = message.Metadata
+                    elseif message.Text and message.Text ~= "" then unmaskedText = message.Text end
                 end)
                 if unmaskedText == "" then return end
                 handleIncomingText(message.TextSource.Name, unmaskedText)
@@ -489,18 +596,13 @@ if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
 else
     local function hookPlayer(p)
         if chatConnections[p] then return end
-        chatConnections[p] = p.Chatted:Connect(function(msg)
-            if scriptRunning then handleIncomingText(p.Name, msg) end
-        end)
+        chatConnections[p] = p.Chatted:Connect(function(msg) if scriptRunning then handleIncomingText(p.Name, msg) end end)
     end
     for _, p in pairs(players:GetPlayers()) do hookPlayer(p) end
     local conn = players.PlayerAdded:Connect(hookPlayer)
     table.insert(chatConnections, conn)
     local dconn = players.PlayerRemoving:Connect(function(p)
-        if chatConnections[p] then
-            chatConnections[p]:Disconnect()
-            chatConnections[p] = nil
-        end
+        if chatConnections[p] then chatConnections[p]:Disconnect() chatConnections[p] = nil end
     end)
     table.insert(chatConnections, dconn)
 end
@@ -615,6 +717,13 @@ chatLogToggleBtn.MouseButton1Click:Connect(function()
     chatLogToggleBtn.TextColor3 = chatLogActive and Color3.new(0,1,0) or Color3.new(1,1,1)
 end)
 
+crosshairToggleBtn.MouseButton1Click:Connect(function()
+    crosshairActive = not crosshairActive
+    crosshairToggleBtn.Text = crosshairActive and "CROSSHAIR: ON" or "CROSSHAIR: OFF"
+    crosshairToggleBtn.BackgroundColor3 = crosshairActive and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(120, 40, 40)
+    crosshairToggleBtn.TextColor3 = crosshairActive and Color3.new(0,1,0) or Color3.new(1,1,1)
+end)
+
 local function updateButtonVisuals()
     farmBtn.Text = farmActive and "AUTOFARM: ACTIVE [F1]" or "AUTOFARM: OFF [F1]"
     farmBtn.BackgroundColor3 = farmActive and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(120, 40, 40)
@@ -677,6 +786,7 @@ toggleEspMenuBtn.MouseButton1Click:Connect(function() espMenu.Visible = not espM
 removeBtn.MouseButton1Click:Connect(function()
     scriptRunning = false; farmActive = false; illegalActive = false; noclip = false; antiAfkActive = false; flyActive = false
     boxActive = false; nameActive = false; tracerActive = false; skeletonActive = false; freecamActive = false; noFogActive = false
+    crosshairActive = false
     camera.CameraType = originalCameraType; userInputService.MouseBehavior = Enum.MouseBehavior.Default
     player.CameraMaxZoomDistance = 400; player.ReplicationFocus = nil
     cameraX = 0; cameraY = 0
@@ -687,6 +797,8 @@ removeBtn.MouseButton1Click:Connect(function()
     end
     if afkConnection then afkConnection:Disconnect() end
     disconnectChat()
+    crosshairDot:Destroy()
+    for _, line in pairs(crosshairLines) do line:Destroy() end
     sg:Destroy()
     drawOverlay:Destroy()
 end)
@@ -753,9 +865,7 @@ runService.Stepped:Connect(function()
             lighting.FogEnd = 999999
             lighting.FogColor = Color3.fromRGB(0, 0, 0)
             for _, v in pairs(lighting:GetChildren()) do
-                if v:IsA("Atmosphere") or v:IsA("Sky") or v:IsA("Clouds") then
-                    v:Destroy()
-                end
+                if v:IsA("Atmosphere") or v:IsA("Sky") or v:IsA("Clouds") then v:Destroy() end
             end
         end)
     end
@@ -800,11 +910,7 @@ runService.Stepped:Connect(function()
                 if userInputService:IsKeyDown(Enum.KeyCode.Space) then vel = vel + Vector3.new(0, 1, 0) end
                 if userInputService:IsKeyDown(Enum.KeyCode.LeftShift) then vel = vel - Vector3.new(0, 1, 0) end
                 
-                if vel.Magnitude > 0 then
-                    root.Velocity = vel.Unit * (flySpeed * 30)
-                else
-                    root.Velocity = Vector3.new(0, 0, 0)
-                end
+                if vel.Magnitude > 0 then root.Velocity = vel.Unit * (flySpeed * 30) else root.Velocity = Vector3.new(0, 0, 0) end
                 root.RotVelocity = Vector3.new(0, 0, 0)
             else
                 if noclip then
@@ -856,10 +962,7 @@ task.spawn(function()
                     task.wait(0.15)
                     fireClosestPrompt(buyPos)
                 else
-                    if crateInBackpack then 
-                        hum:EquipTool(crateInBackpack) 
-                        task.wait(0.05)
-                    end
+                    if crateInBackpack then hum:EquipTool(crateInBackpack) task.wait(0.05) end
                     root.CFrame = CFrame.new(sellPos + Vector3.new(0, 2, 0))
                     task.wait(0.15)
                     fireClosestPrompt(sellPos)
